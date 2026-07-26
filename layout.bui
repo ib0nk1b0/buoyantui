@@ -1,0 +1,14 @@
+
+# Layout comment
+
+:style {
+    background = 0.3, 0.2, 0.8
+    header = 0.8, 0.2, 0.3
+    font = 1.0, 1.0, 1.0
+}
+
+:window {
+    name = Main
+    pos = 0, 0
+    size = 600, 400
+}
