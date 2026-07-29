@@ -76,6 +76,9 @@
 #else
 #endif
 
+#define internal static
+#define global static
+
 #define Kilobytes(x) 1024 * (x)
 #define Megabytes(x) 1024 * Kilobytes(x)
 #define Gigabytes(x) 1024 * Megabytes(x)
@@ -87,10 +90,13 @@ typedef struct
     size_t size;
 } Arena;
 
+global uint64_t cutils_arena_default_size = Megabytes(64);
+
 Arena* cutils_arena_create(size_t size);
 void   cutils_arena_release(Arena* arena);
 void*  cutils_arena_push(Arena* arena, size_t size);
 void*  cutils_arena_pop(Arena* arena, size_t size);
+
 #define ArenaPushStruct(arena, T) (T*)cutils_arena_push(arena, sizeof(T))
 #define ArenaPushArray(arena, T, n) (T*)cutils_arena_push(arena, sizeof(T) * (n))
 #define ArenaPopStruct(arena, T) (T*)cutils_arena_pop(arena, sizeof(T))
@@ -130,6 +136,7 @@ char* cutils_next_cmd_line_arg(int* argc, char*** argv);
 
 #ifdef CUTILS_NO_PREFIX_ARENA
 
+#define arena_default_size cutils_arena_default_size
 #define arena_create cutils_arena_create
 #define arena_release cutils_arena_release
 #define arena_push cutils_arena_push

@@ -13,10 +13,6 @@ typedef struct
     uint32_t      MaxIndices;
     uint32_t      QuadIndexCount;
     Shader        QuadShader;
-    GLint         TEMPUniformLoc;  // TODO: Temp
-    GLint         TEMPUniformLoc2; // TODO: Temp
-    GLint         TEMPUniformLoc3; // TODO: Temp
-    GLint         TEMPUniformLoc4; // TODO: Temp
     Vertex_Array  VertexArray;
     Vertex_Buffer VertexBuffer;
     Index_Buffer  IndexBuffer;

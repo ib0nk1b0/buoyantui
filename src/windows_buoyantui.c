@@ -25,10 +25,13 @@
 
 // My includes
 #include "utils.h"
-#include "opengl_texture.c"
-#include "opengl_renderer.c"
 
-#include "bui.h"
+#include "renderer/opengl_buffer.c"
+#include "renderer/opengl_shader.c"
+#include "renderer/opengl_texture.c"
+#include "renderer/opengl_renderer.c"
+
+#include "bui.c"
 
 static void glfw_error_callback(int error, const char* desc)
 {
@@ -110,7 +113,7 @@ int main(void)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // NOTE: init bui
-    Bui* bui = bui_init(arena);
+    Bui* bui = bui_init();
 
     // Renderer2D_Data data = renderer2D_init(arena);
     // Texture2D fontAtlas = texture_create_from_file("W:\\buoyant\\resources\\textures\\charmap-oldschool_white.png");
