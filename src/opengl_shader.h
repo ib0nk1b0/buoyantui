@@ -3,10 +3,24 @@
 
 typedef struct
 {
-    GLuint renderer_id;
+    char*               name;
+    uint32_t            location;
+} Shader_Uniform;
+
+typedef struct
+{
+    Shader_Uniform* uniform_cache;
+    uint32_t        uniform_count;
+    uint32_t        renderer_id;
 } Shader;
 
 static Shader shader_compile_from_file(const char* filepath);
+
+static void shader_set_uniform_cache(Arena* arena, Shader* shader, char** uniform_names, uint32_t uniform_count);
+
+static void shader_upload_uniform_float(Shader shader, const char* name, float value);
+static void shader_upload_uniform_mat4(Shader shader, const char* name,  mat4 value);
+
 static void shader_bind(Shader shader);
 
 // TODO: this expects vertex and fragment shader in one file. in the future
@@ -90,6 +104,56 @@ static Shader shader_compile_from_file(const char* filepath)
     arena_release(tempAlloc);
 
     return shader;
+}
+
+static void shader_set_uniform_cache(Arena* arena, Shader* shader, char** uniform_names, uint32_t uniform_count)
+{
+    // TODO: should take in a Shader_Uniform
+    // TODO: errors...
+    shader->uniform_cache = ArenaPushArray(arena, Shader_Uniform, uniform_count);
+    shader->uniform_count = uniform_count;
+
+    for (uint32_t i = 0; i < uniform_count; i++)
+    {
+        Shader_Uniform* uniform = &shader->uniform_cache[i];
+        uint32_t name_len = strlen(uniform_names[i]);
+        uniform->name = ArenaPushArray(arena, char, (name_len + 1));
+        
+        strcpy(uniform->name, uniform_names[i]);
+
+        glCheckError(uniform->location = glGetUniformLocation(shader->renderer_id, uniform->name));
+    }
+}
+
+static uint32_t shader_get_location_from_cache(Shader shader, const char* name)
+{
+    uint32_t location = -1;
+    for (int i = 0; i < shader.uniform_count; i++)
+    {
+        if (strcmp(shader.uniform_cache[i].name, name) == 0)
+        {
+            location = shader.uniform_cache[i].location;
+            break;
+        }
+    }
+    return location;
+}
+
+static void shader_upload_uniform_float(Shader shader, const char* name, float value)
+{
+    // NOTE: assuming the cache has already been set up
+    // NOTE: check if exists in shader cache...
+    uint32_t location = shader_get_location_from_cache(shader, name);
+    glCheckError(glUniform1f(location, value));
+
+}
+
+static void shader_upload_uniform_mat4(Shader shader, const char* name,  mat4 value)
+{
+    // NOTE: assuming the cache has already been set up
+    // NOTE: check if exists in shader cache...
+    uint32_t location = shader_get_location_from_cache(shader, name);
+    glCheckError(glUniformMatrix4fv(location, 1, GL_FALSE, value[0]));
 }
 
 static void shader_bind(Shader shader)

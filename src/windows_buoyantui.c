@@ -25,8 +25,8 @@
 
 // My includes
 #include "utils.h"
-#include "opengl_texture.h"
-#include "opengl_renderer.h"
+#include "opengl_texture.c"
+#include "opengl_renderer.c"
 
 #include "bui.h"
 
