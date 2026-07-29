@@ -1,6 +1,6 @@
 #include "bui.h"
 
-internal bool bui_is_hovered(Bui* bui, vec2 pos, vec2 size)
+internal bool bui_is_mouse_hovered(Bui* bui, vec2 pos, vec2 size)
 {
     if (bui->mouse_x >= pos[0] - (size[0] * 0.5f) &&
         bui->mouse_x <= pos[0] + (size[0] * 0.5f) &&
@@ -15,6 +15,32 @@ internal bool bui_is_hovered(Bui* bui, vec2 pos, vec2 size)
     }
 
     return false;
+}
+
+internal bool bui_is_active(Bui* bui, Bui_Id id)
+{
+    if (bui->active == NULL)
+    {
+        return false;
+    }
+
+    return strcmp(bui->active, id) == 0;
+}
+
+internal bool bui_is_hovered(Bui* bui, Bui_Id id)
+{
+    if (bui->hovered == NULL)
+    {
+        return false;
+    }
+
+    return strcmp(bui->hovered, id) == 0;
+}
+
+internal void bui_set_active(Bui* bui, Bui_Id id)
+{
+    // TODO:
+    bui->active = id;
 }
 
 static Bui* bui_init()
@@ -56,6 +82,7 @@ static void bui_begin_frame(Bui* bui, float width, float height)
 static void bui_end_frame(Bui* bui)
 {
     renderer2D_end_scene(&bui->renderer);
+    bui->mouse_was_down = bui->mouse_down;
 }
 
 static void bui_text(Bui* bui, const char* text, vec2 pos, vec2 size)
@@ -74,8 +101,42 @@ static bool bui_button(Bui* bui, const char* label, vec2 pos, vec2 size)
 {
     // TODO: error checking
 
+    /*
+     * if active
+     *      if mouse up
+     *          if hovered
+     *              return true
+     *          unset active
+     *          return false
+     * if hovered
+     *      if mouse down
+     *          set active
+     *
+     * if inside
+     * */
+
+    if (bui_is_active(bui, label))
+    {
+        if (bui->mouse_was_down && !bui->mouse_down) // NOTE: mouse went up
+        {
+            if (bui_is_hovered(bui, label))
+            {
+                bui->active = NULL;
+                return true;
+            }
+            bui->active = NULL;
+        }
+    }
+    else if (bui_is_hovered(bui, label))
+    {
+        if (!bui->mouse_was_down && bui->mouse_down) // NOTE: mouse went down
+        {
+            bui_set_active(bui, label);
+        }
+    }
+
     vec4 color;
-    if (bui_is_hovered(bui, pos, size))
+    if (bui_is_mouse_hovered(bui, pos, size))
     {
         glm_vec4_copy(bui->color_scheme.hovered, color);
         bui->hovered = label;

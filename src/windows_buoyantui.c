@@ -46,16 +46,8 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
     }
 }
 
-typedef struct
-{
-    vec3 position;
-    vec3 rotation;
-    vec3 scale;
-} Transform;
-
 int main(void)
 {
-    srand(time(0));
     Arena* arena = arena_create(Megabytes(64));
 
     // GLFW 
@@ -144,13 +136,6 @@ int main(void)
     vec4 color_green = { 0.2f, 0.8f, 0.3f, 1.0f };
     vec4 color_blue  = { 0.2f, 0.3f, 0.8f, 1.0f };
 
-    // vec4 color;
-    // int x = rand() % 4 + 1;
-    // if (x == 1) glm_vec4_copy(color_white, color);
-    // if (x == 2) glm_vec4_copy(color_red, color);
-    // if (x == 3) glm_vec4_copy(color_green, color);
-    // if (x == 4) glm_vec4_copy(color_blue, color);
-
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -173,6 +158,15 @@ int main(void)
         mouse_y = height - mouse_y;
         bui->mouse_x = mouse_x;
         bui->mouse_y = mouse_y;
+        int mouse_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+        if (mouse_state == GLFW_PRESS)
+        {
+            bui->mouse_down = true;
+        }
+        else
+        {
+            bui->mouse_down = false;
+        }
 
         // Camera
         // glm_ortho(-ratio * scaleFactor, ratio * scaleFactor, -1.0f * scaleFactor, 1.0f * scaleFactor, -1.0f, 1.0f, projection);
@@ -180,9 +174,15 @@ int main(void)
 
         bui_begin_frame(bui, width, height);
 
-        bui_button(bui, "Button", (vec2){width*0.5f, height*0.5f}, (vec2){100.0f, 60.0f});
+        if (bui_button(bui, "Button", (vec2){width*0.5f, height*0.5f}, (vec2){100.0f, 60.0f}))
+        {
+            printf("Button was clicked\n");
+        }
 
-        bui_button(bui, "Click", (vec2){800, 800}, (vec2){100.0f, 60.0f});
+        if (bui_button(bui, "Click", (vec2){800, 800}, (vec2){100.0f, 60.0f}))
+        {
+            printf("Click was clicked\n");
+        }
 
         char screenWidth[32];
         sprintf(screenWidth, "WIDTH: %d", width);
@@ -216,7 +216,6 @@ int main(void)
         bui_text(bui, activeBuf, (vec2){10.0f, height - 60.0f}, (vec2){10.0f, 10.0f});
 
         bui_end_frame(bui);
-
 
         glfwSwapBuffers(window);
     }

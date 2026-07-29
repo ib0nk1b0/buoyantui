@@ -27,6 +27,8 @@ typedef struct
     float            window_height;
     float            mouse_x;
     float            mouse_y;
+    bool             mouse_down;
+    bool             mouse_was_down;
 } Bui;
 
 static Bui* bui_init();
