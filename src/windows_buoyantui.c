@@ -106,6 +106,13 @@ int main(void)
 
     // NOTE: init bui
     Bui* bui = bui_init();
+    Bui_Color_Scheme default_scheme = bui->color_scheme;
+    Bui_Color_Scheme blue_scheme = (Bui_Color_Scheme){
+        .font       = { 0.90f, 0.90f, 0.95f, 1.0f },
+        .background = { 0.10f, 0.12f, 0.22f, 1.0f },
+        .button     = { 0.20f, 0.25f, 0.85f, 1.0f },
+        .hovered    = { 0.25f, 0.60f, 0.25f, 1.0f },
+    };
 
     // Renderer2D_Data data = renderer2D_init(arena);
     // Texture2D fontAtlas = texture_create_from_file("W:\\buoyant\\resources\\textures\\charmap-oldschool_white.png");
@@ -174,46 +181,367 @@ int main(void)
 
         bui_begin_frame(bui, width, height);
 
-        if (bui_button(bui, "Button", (vec2){width*0.5f, height*0.5f}, (vec2){100.0f, 60.0f}))
-        {
-            printf("Button was clicked\n");
-        }
+        // if (bui_button(bui, "Blue Scheme", (vec2){width*0.5f, height*0.5f}, (vec2){300.0f, 100.0f}))
+        // {
+        //     printf("Blue Scheme was clicked\n");
+        //     bui->color_scheme = blue_scheme;
+        // }
+        //
+        // if (bui_button(bui, "Reset", (vec2){width*0.5f, height*0.5f-125.0f}, (vec2){300.0f, 100.0f}))
+        // {
+        //     printf("Reset was clicked\n");
+        //     bui->color_scheme = default_scheme;
+        // }
 
-        if (bui_button(bui, "Click", (vec2){800, 800}, (vec2){100.0f, 60.0f}))
-        {
-            printf("Click was clicked\n");
-        }
+        // TODO: figure out why this works when first but not when last
+        char mousePosBuf[256];
+        sprintf(mousePosBuf, "MOUSE POS: %f, %f", bui->mouse_x, bui->mouse_y);
 
-        char screenWidth[32];
-        sprintf(screenWidth, "WIDTH: %d", width);
-        bui_text(bui, screenWidth, (vec2){10.0f, height - 10.0f}, (vec2){10.0f, 10.0f});
-
-        char screenHeight[32];
-        sprintf(screenHeight, "HEIGHT: %d", height);
-        bui_text(bui, screenHeight, (vec2){10.0f, height - 20.0f}, (vec2){10.0f, 10.0f});
-
-        char mousePosBuf[32];
-        sprintf(mousePosBuf, "MOUSE POS: %f, %f", mouse_x, mouse_y);
-        bui_text(bui, mousePosBuf, (vec2){10.0f, height - 30.0f}, (vec2){10.0f, 10.0f});
-
-        char WKeyDownBuf[32];
-        if (w_key_state == GLFW_PRESS || w_key_state == GLFW_REPEAT)
-        {
-            sprintf(WKeyDownBuf, "W Key Down: TRUE");
-        }
-        else
-        {
-            sprintf(WKeyDownBuf, "W Key Down: FALSE");
-        }
-        bui_text(bui, WKeyDownBuf, (vec2){10.0f, height - 40.0f}, (vec2){10.0f, 10.0f});
-
-        char hoveredBuf[32];
+        char hoveredBuf[256];
         sprintf(hoveredBuf, "Hovered: %s", bui->hovered);
-        bui_text(bui, hoveredBuf, (vec2){10.0f, height - 50.0f}, (vec2){10.0f, 10.0f});
 
-        char activeBuf[32];
+        char activeBuf[256];
         sprintf(activeBuf, "Active: %s", bui->active);
+
+        char screenDimensionsBuf[256];
+        sprintf(screenDimensionsBuf, "SCREEN: %d, %d", width, height);
+
+#ifdef BUI_AUTO_LAYOUT
+        bui_text(bui, mousePosBuf);
+        bui_same_line(bui);
+        bui_text(bui, "|");
+        bui_same_line(bui);
+        bui_text(bui, screenDimensionsBuf);
+        bui_text(bui, hoveredBuf);
+        bui_same_line(bui);
+        bui_text(bui, "|");
+        bui_same_line(bui);
+        bui_text(bui, activeBuf);
+
+        bui_text(bui, "");
+
+        bui_text(bui, "Some text 1");
+        bui_text(bui, "Some text 2");
+        bui_text(bui, "Some text 3");
+        bui_text(bui, "Some text 4");
+        bui_text(bui, "Some text 5");
+
+        bui_text(bui, "");
+
+        bui_button(bui, "Some Button 1");
+        bui_same_line(bui);
+        bui_button(bui, "Some Button 2");
+        bui_same_line(bui);
+        bui_button(bui, "Some Button 3");
+
+        bui_text(bui, "");
+
+        if (bui_button(bui, "Set Blue Color Scheme"))
+        {
+            printf("Blue Scheme was clicked\n");
+            bui->color_scheme = blue_scheme;
+        }
+
+        if (bui_button(bui, "Reset Color Scheme"))
+        {
+            printf("Reset was clicked\n");
+            bui->color_scheme = default_scheme;
+        }
+
+        // Calculator
+
+        typedef enum
+        {
+            CALC_NONE,
+            CALC_ADD,
+            CALC_SUB,
+            CALC_MUL,
+            CALC_DIV,
+            CALC_EQUAL,
+        } Calculator_Operation_Kind;
+        static Calculator_Operation_Kind operation = CALC_NONE; 
+        static Calculator_Operation_Kind last_op = CALC_NONE; 
+
+        static int runningTotal = 0;
+        static int input = 0;
+
+        char calculatorScreenBuf[256];
+        switch (operation)
+        {
+            case CALC_NONE:
+            case CALC_EQUAL:
+            {
+                sprintf(calculatorScreenBuf, "%d", runningTotal);
+            } break;
+            case CALC_ADD:
+            case CALC_SUB:
+            case CALC_MUL:
+            case CALC_DIV:
+            {
+                sprintf(calculatorScreenBuf, "%d", input);
+            } break;
+        }
+
+        bui_text(bui, "");
+        bui_text(bui, calculatorScreenBuf);
+        
+        if (bui_button(bui, "7"))
+        {
+            if (operation == CALC_NONE)
+            {
+                runningTotal = runningTotal * 10 + 7;
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                input = input * 10 + 7;
+            }
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "8"))
+        {
+            if (operation == CALC_NONE)
+            {
+                runningTotal = runningTotal * 10 + 8;
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                input = input * 10 + 8;
+            }
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "9"))
+        {
+            if (operation == CALC_NONE)
+            {
+                runningTotal = runningTotal * 10 + 9;
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                input = input * 10 + 9;
+            }
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "+"))
+        {
+            operation = CALC_ADD;
+            input = 0;
+        }
+
+        if (bui_button(bui, "4"))
+        {
+            if (operation == CALC_NONE)
+            {
+                runningTotal = runningTotal * 10 + 4;
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                input = input * 10 + 4;
+            }
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "5"))
+        {
+            if (operation == CALC_NONE)
+            {
+                runningTotal = runningTotal * 10 + 5;
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                input = input * 10 + 5;
+            }
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "6"))
+        {
+            if (operation == CALC_NONE)
+            {
+                runningTotal = runningTotal * 10 + 6;
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                input = input * 10 + 6;
+            }
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "-"))
+        {
+            operation = CALC_SUB;
+            input = 0;
+        }
+
+        if (bui_button(bui, "1"))
+        {
+            if (operation == CALC_NONE)
+            {
+                runningTotal = runningTotal * 10 + 1;
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                input = input * 10 + 1;
+            }
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "2"))
+        {
+            if (operation == CALC_NONE)
+            {
+                runningTotal = runningTotal * 10 + 2;
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                input = input * 10 + 2;
+            }
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "3"))
+        {
+            if (operation == CALC_NONE)
+            {
+                runningTotal = runningTotal * 10 + 3;
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                input = input * 10 + 3;
+            }
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "*"))
+        {
+            operation = CALC_MUL;
+            input = 0;
+        }
+
+        if (bui_button(bui, "C"))
+        {
+            runningTotal = 0;
+            input = 0;
+            operation = CALC_NONE;
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "0"))
+        {
+            if (operation == CALC_NONE)
+            {
+                runningTotal = runningTotal * 10 + 0;
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                input = input * 10 + 0;
+            }
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "="))
+        {
+            if (operation == CALC_EQUAL)
+            {
+                operation = last_op;
+            }
+
+            if (operation == CALC_ADD)
+            {
+                runningTotal += input;
+            }
+
+            if (operation == CALC_SUB)
+            {
+                runningTotal -= input;
+            }
+
+            if (operation == CALC_MUL)
+            {
+                runningTotal *= input;
+            }
+
+            if (operation == CALC_DIV)
+            {
+                if (runningTotal != 0 && input != 0)
+                {
+                    runningTotal /= input;
+                }
+            }
+
+            last_op = operation;
+            operation = CALC_EQUAL;
+        }
+
+        bui_same_line(bui);
+
+        if (bui_button(bui, "/"))
+        {
+            operation = CALC_DIV;
+            input = 0;
+        }
+
+        bui_text(bui, "  ");
+        bui_same_line(bui);
+
+        if (bui_button(bui, " <= "))
+        {
+            if (operation == CALC_NONE || operation == CALC_EQUAL)
+            {
+                if (runningTotal > 0)
+                {
+                    runningTotal = runningTotal / 10;
+                }
+            }
+            else if (operation == CALC_ADD || operation == CALC_SUB || operation == CALC_MUL || operation == CALC_DIV)
+            {
+                if (input > 0)
+                {
+                    input = input / 10;
+                }
+            }
+        }
+        
+#else
+        bui_text(bui, hoveredBuf, (vec2){10.0f, height - 50.0f}, (vec2){10.0f, 10.0f});
         bui_text(bui, activeBuf, (vec2){10.0f, height - 60.0f}, (vec2){10.0f, 10.0f});
+#endif // BUI_AUTO_LAYOUT
+
+        // char screenWidth[32];
+        // sprintf(screenWidth, "WIDTH: %d", width);
+        // bui_text(bui, screenWidth, (vec2){10.0f, height - 10.0f}, (vec2){10.0f, 10.0f});
+        //
+        // char screenHeight[32];
+        // sprintf(screenHeight, "HEIGHT: %d", height);
+        // bui_text(bui, screenHeight, (vec2){10.0f, height - 20.0f}, (vec2){10.0f, 10.0f});
+        //
+        // char mousePosBuf[32];
+        // sprintf(mousePosBuf, "MOUSE POS: %f, %f", mouse_x, mouse_y);
+        // bui_text(bui, mousePosBuf, (vec2){10.0f, height - 30.0f}, (vec2){10.0f, 10.0f});
+        //
+        // char WKeyDownBuf[32];
+        // if (w_key_state == GLFW_PRESS || w_key_state == GLFW_REPEAT)
+        // {
+        //     sprintf(WKeyDownBuf, "W Key Down: TRUE");
+        // }
+        // else
+        // {
+        //     sprintf(WKeyDownBuf, "W Key Down: FALSE");
+        // }
+        // bui_text(bui, WKeyDownBuf, (vec2){10.0f, height - 40.0f}, (vec2){10.0f, 10.0f});
 
         bui_end_frame(bui);
 

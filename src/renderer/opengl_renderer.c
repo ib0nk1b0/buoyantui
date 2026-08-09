@@ -1,5 +1,7 @@
 #include "opengl_renderer.h"
 
+#include <direct.h>
+
 static Renderer2D_Data renderer2D_init(Arena* arena)
 {
     Renderer2D_Data data = {0};
@@ -11,22 +13,42 @@ static Renderer2D_Data renderer2D_init(Arena* arena)
     data.MaxIndices   = data.MaxQuads * data.NumIndices;
 
     // TODO: get rid of absolute paths
-    data.QuadShader = shader_compile_from_file("W:\\buoyant\\buoyantui\\src\\basic_shader.glsl");
+    // TODO: temp
+    char working_dir[1024];
+    _getcwd(working_dir, sizeof(working_dir));
+    printf("%s\n", working_dir);
+    data.QuadShader = shader_compile_from_file("src\\basic_shader.glsl");
     // data.QuadShader = shader_compile_from_file("W:\\buoyant\\buoyantui\\src\\fractal_shader.glsl");
 
-    data.VertexArray  = vertex_array_create();
-    data.VertexBuffer = vertex_buffer_create_empty(data.MaxVertices * sizeof(Vertex));
+    // NOTE: Quad
+    data.QuadVertexArray  = vertex_array_create();
+    data.QuadVertexBuffer = vertex_buffer_create_empty(data.MaxVertices * sizeof(Vertex));
 
-    // TODO: Set layout
-    uint32_t num_elements = 4;
-    Vertex_Buffer_Layout_Element* layout_elements = ArenaPushArray(arena, Vertex_Buffer_Layout_Element, num_elements);
-    layout_elements[0] = (Vertex_Buffer_Layout_Element){ .name = "a_Position", .type = VERTEX_ATTRIB_FLOAT3, .offset = offsetof(Vertex, pos) };
-    layout_elements[1] = (Vertex_Buffer_Layout_Element){ .name = "a_Color", .type = VERTEX_ATTRIB_FLOAT4, .offset = offsetof(Vertex, color) };
-    layout_elements[2] = (Vertex_Buffer_Layout_Element){ .name = "a_TexCoord", .type = VERTEX_ATTRIB_FLOAT2, .offset = offsetof(Vertex, texture_coords) };
-    layout_elements[3] = (Vertex_Buffer_Layout_Element){ .name = "a_TexIndex", .type = VERTEX_ATTRIB_FLOAT1, .offset = offsetof(Vertex, texture_index) };
-    Vertex_Buffer_Layout layout = vertex_buffer_layout_create(layout_elements, num_elements, sizeof(Vertex));
-    vertex_buffer_set_layout(&data.VertexBuffer, layout);
-    vertex_array_add_vertex_buffer(&data.VertexArray, data.VertexBuffer);
+    uint32_t quad_num_elements = 4;
+    Vertex_Buffer_Layout_Element* quad_layout_elements = ArenaPushArray(arena, Vertex_Buffer_Layout_Element, quad_num_elements);
+    quad_layout_elements[0] = (Vertex_Buffer_Layout_Element){ .name = "a_Position", .type = VERTEX_ATTRIB_FLOAT3, .offset = offsetof(Vertex, pos) };
+    quad_layout_elements[1] = (Vertex_Buffer_Layout_Element){ .name = "a_Color", .type = VERTEX_ATTRIB_FLOAT4, .offset = offsetof(Vertex, color) };
+    quad_layout_elements[2] = (Vertex_Buffer_Layout_Element){ .name = "a_TexCoord", .type = VERTEX_ATTRIB_FLOAT2, .offset = offsetof(Vertex, texture_coords) };
+    quad_layout_elements[3] = (Vertex_Buffer_Layout_Element){ .name = "a_TexIndex", .type = VERTEX_ATTRIB_FLOAT1, .offset = offsetof(Vertex, texture_index) };
+
+    Vertex_Buffer_Layout quad_layout = vertex_buffer_layout_create(quad_layout_elements, quad_num_elements, sizeof(Vertex));
+    vertex_buffer_set_layout(&data.QuadVertexBuffer, quad_layout);
+    vertex_array_add_vertex_buffer(&data.QuadVertexArray, data.QuadVertexBuffer);
+
+    // NOTE: Text
+    data.TextVertexArray  = vertex_array_create();
+    data.TextVertexBuffer = vertex_buffer_create_empty(data.MaxVertices * sizeof(Vertex));
+
+    uint32_t text_num_elements = 4;
+    Vertex_Buffer_Layout_Element* text_layout_elements = ArenaPushArray(arena, Vertex_Buffer_Layout_Element, text_num_elements);
+    text_layout_elements[0] = (Vertex_Buffer_Layout_Element){ .name = "a_Position", .type = VERTEX_ATTRIB_FLOAT3, .offset = offsetof(Vertex, pos) };
+    text_layout_elements[1] = (Vertex_Buffer_Layout_Element){ .name = "a_Color", .type = VERTEX_ATTRIB_FLOAT4, .offset = offsetof(Vertex, color) };
+    text_layout_elements[2] = (Vertex_Buffer_Layout_Element){ .name = "a_TexCoord", .type = VERTEX_ATTRIB_FLOAT2, .offset = offsetof(Vertex, texture_coords) };
+    text_layout_elements[3] = (Vertex_Buffer_Layout_Element){ .name = "a_TexIndex", .type = VERTEX_ATTRIB_FLOAT1, .offset = offsetof(Vertex, texture_index) };
+
+    Vertex_Buffer_Layout text_layout = vertex_buffer_layout_create(text_layout_elements, text_num_elements, sizeof(Vertex));
+    vertex_buffer_set_layout(&data.TextVertexBuffer, text_layout);
+    vertex_array_add_vertex_buffer(&data.TextVertexArray, data.TextVertexBuffer);
 
     uint32_t* indices = ArenaPushArray(arena, uint32_t, data.MaxIndices);
     for (uint32_t i = 0, offset = 0; i < data.MaxIndices; i += 6, offset += 4)
@@ -39,12 +61,20 @@ static Renderer2D_Data renderer2D_init(Arena* arena)
         indices[i + 4] = offset + 3;
         indices[i + 5] = offset + 0;
     }
-    data.IndexBuffer = index_buffer_create(indices, data.MaxIndices);
-    ArenaPopArray(arena, uint32_t, data.MaxIndices);
-    vertex_array_set_index_buffer(&data.VertexArray, data.IndexBuffer);
 
-    data.VertexBase = ArenaPushArray(arena, Vertex, data.MaxVertices);
-    data.VertexPtr = data.VertexBase;
+    data.QuadIndexBuffer = index_buffer_create(indices, data.MaxIndices);
+    data.TextIndexBuffer = index_buffer_create(indices, data.MaxIndices);
+
+    ArenaPopArray(arena, uint32_t, data.MaxIndices);
+
+    vertex_array_set_index_buffer(&data.QuadVertexArray, data.QuadIndexBuffer);
+    vertex_array_set_index_buffer(&data.TextVertexArray, data.TextIndexBuffer);
+
+    data.QuadVertexBase = ArenaPushArray(arena, Vertex, data.MaxVertices);
+    data.TextVertexBase = ArenaPushArray(arena, Vertex, data.MaxVertices);
+
+    data.QuadVertexPtr = data.QuadVertexBase;
+    data.TextVertexPtr = data.TextVertexBase;
 
     // TODO: Clenup
     char** uniform_names = ArenaPushArray(arena, char*, 4);
@@ -67,10 +97,6 @@ static Renderer2D_Data renderer2D_init(Arena* arena)
 
     shader_set_uniform_cache(arena, &data.QuadShader, uniform_names, 4);
 
-    // glCheckError(data.TEMPUniformLoc2 = glGetUniformLocation(data.QuadShader.renderer_id, "u_Width"));
-    // glCheckError(data.TEMPUniformLoc3 = glGetUniformLocation(data.QuadShader.renderer_id, "u_Height"));
-    // glCheckError(data.TEMPUniformLoc4 = glGetUniformLocation(data.QuadShader.renderer_id, "u_Time"));
-
     data.MaxTextureSlots = 32;
     data.TextureSlots = ArenaPushArray(arena, Texture2D, data.MaxTextureSlots);
     data.TextureSlotIndex = 0;
@@ -82,22 +108,20 @@ static Renderer2D_Data renderer2D_init(Arena* arena)
 
 static void renderer2D_begin_scene(Renderer2D_Data* data, mat4 camera, /*TODO:remove -> */ float width, float height, float time)
 {
-    data->VertexPtr = data->VertexBase;
+    data->QuadVertexPtr = data->QuadVertexBase;
     data->QuadIndexCount = 0;
+
+    data->TextVertexPtr = data->TextVertexBase;
+    data->TextIndexCount = 0;
+
     shader_bind(data->QuadShader);
-    // glCheckError(glUniformMatrix4fv(data->TEMPUniformLoc, 1, GL_FALSE, camera[0]));
 
     // TODO:
-    // shader_upload_uniform(data->QuadShader, "u_ViewProjection")
-    // glCheckError(glUniformMatrix4fv(data->QuadShader.uniform_cache[0].location, 1, GL_FALSE, camera[0]));
     shader_upload_uniform_mat4(data->QuadShader, "u_ViewProjection", camera);
 
     shader_upload_uniform_float(data->QuadShader, "u_Width", width);
     shader_upload_uniform_float(data->QuadShader, "u_Height", height);
     shader_upload_uniform_float(data->QuadShader, "u_Time", time);
-    // glCheckError(glUniform1f(data->TEMPUniformLoc2, width));
-    // glCheckError(glUniform1f(data->TEMPUniformLoc3, height));
-    // glCheckError(glUniform1f(data->TEMPUniformLoc4, time));
 }
 
 static void renderer2D_draw_quad(Renderer2D_Data* data, mat4 transform, vec4 color)
@@ -146,11 +170,11 @@ static void renderer2D_draw_textured_qaud_uvs(Renderer2D_Data* data, Texture2D t
     {
         vec3 position;
         glm_mat4_mulv3(transform, (float*)quadVertexPositions[i], 1.0f, position);
-        glm_vec3_copy(position, data->VertexPtr->pos);
-        glm_vec4_copy(color, data->VertexPtr->color);
-        glm_vec2_copy((float*)uvs[i], data->VertexPtr->texture_coords);
-        data->VertexPtr->texture_index = texture_index;
-        data->VertexPtr++;
+        glm_vec3_copy(position, data->QuadVertexPtr->pos);
+        glm_vec4_copy(color, data->QuadVertexPtr->color);
+        glm_vec2_copy((float*)uvs[i], data->QuadVertexPtr->texture_coords);
+        data->QuadVertexPtr->texture_index = texture_index;
+        data->QuadVertexPtr++;
     }
     data->QuadIndexCount += 6;
 }
@@ -164,7 +188,7 @@ static void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font, 
 {
     // TODO: flushing
     // TODO: use different batch pool for strings
-    if (data->QuadIndexCount + (string_size * 6) >= data->MaxIndices)
+    if (data->TextIndexCount + (string_size * 6) >= data->MaxIndices)
     {
         printf("ERROR: ran out of quads this batch! Implement flushing\n");
         return;
@@ -231,34 +255,57 @@ static void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font, 
             position[0] += x_offset;
             position[1] -= y_offset;
             glm_mat4_mulv3(transform, &position[0], 1.0f, position);
-            glm_vec3_copy(position, data->VertexPtr->pos);
-            glm_vec4_copy(color, data->VertexPtr->color);
-            glm_vec2_copy((float*)fontTextureCoords[j], data->VertexPtr->texture_coords);
-            data->VertexPtr->texture_index = texture_index;
-            data->VertexPtr++;
+            glm_vec3_copy(position, data->TextVertexPtr->pos);
+            glm_vec4_copy(color, data->TextVertexPtr->color);
+            glm_vec2_copy((float*)fontTextureCoords[j], data->TextVertexPtr->texture_coords);
+            data->TextVertexPtr->texture_index = texture_index;
+            data->TextVertexPtr++;
         }
 
         x_offset += 1;
-        data->QuadIndexCount += 6;
+        data->TextIndexCount += 6;
     }
 
 }
 
 static void renderer2D_end_scene(Renderer2D_Data* data)
 {
-    size_t size = (uint8_t*)data->VertexPtr - (uint8_t*)data->VertexBase;
-    vertex_array_bind(data->VertexArray);
-    vertex_buffer_set_data(data->VertexBuffer, data->VertexBase, size);
-    uint32_t samplers[data->TextureSlotIndex];
-    for (uint32_t i = 0; i < data->TextureSlotIndex; i++)
+    if (data->QuadIndexCount)
     {
-        texture_bind(data->TextureSlots[i], i);
-        samplers[i] = i;
+        size_t size = (uint8_t*)data->QuadVertexPtr - (uint8_t*)data->QuadVertexBase;
+        vertex_array_bind(data->QuadVertexArray);
+        vertex_buffer_set_data(data->QuadVertexBuffer, data->QuadVertexBase, size);
+
+        uint32_t samplers[data->TextureSlotIndex];
+        for (uint32_t i = 0; i < data->TextureSlotIndex; i++)
+        {
+            texture_bind(data->TextureSlots[i], i);
+            samplers[i] = i;
+        }
+
+        glCheckError(GLint location = glGetUniformLocation(data->QuadShader.renderer_id, "u_Textures"));
+        glCheckError(glUniform1iv(location, data->TextureSlotIndex, (int*)&samplers));
+
+        glCheckError(glCheckError(glDrawElements(GL_TRIANGLES, data->QuadIndexCount, GL_UNSIGNED_INT, NULL)));
     }
 
-    glCheckError(GLint location = glGetUniformLocation(data->QuadShader.renderer_id, "u_Textures"));
-    glCheckError(glUniform1iv(location, data->TextureSlotIndex, (int*)&samplers));
+    if (data->TextIndexCount)
+    {
+        size_t size = (uint8_t*)data->TextVertexPtr - (uint8_t*)data->TextVertexBase;
+        vertex_array_bind(data->TextVertexArray);
+        vertex_buffer_set_data(data->TextVertexBuffer, data->TextVertexBase, size);
 
-    glCheckError(glCheckError(glDrawElements(GL_TRIANGLES, data->QuadIndexCount, GL_UNSIGNED_INT, NULL)));
+        uint32_t samplers[data->TextureSlotIndex];
+        for (uint32_t i = 0; i < data->TextureSlotIndex; i++)
+        {
+            texture_bind(data->TextureSlots[i], i);
+            samplers[i] = i;
+        }
+
+        glCheckError(GLint location = glGetUniformLocation(data->QuadShader.renderer_id, "u_Textures"));
+        glCheckError(glUniform1iv(location, data->TextureSlotIndex, (int*)&samplers));
+
+        glCheckError(glCheckError(glDrawElements(GL_TRIANGLES, data->TextIndexCount, GL_UNSIGNED_INT, NULL)));
+    }
 }
 
