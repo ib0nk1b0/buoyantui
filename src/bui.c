@@ -50,13 +50,13 @@ internal Bui* bui_init()
     bui->arena = arena;
 
     bui->renderer = renderer2D_init(arena);
-    bui->fontAtlas = texture_create_from_file("resources\\fonts\\charmap-oldschool_white.png"); // TODO: relative paths
+    bui->fontAtlas = texture_create_from_file("resources\\fonts\\charmap-oldschool_white.png");
 
     bui->color_scheme = (Bui_Color_Scheme){
         .font       = { 0.90f, 0.90f, 0.95f, 1.0f },
-        .background = { 0.10f, 0.12f, 0.22f, 1.0f },
-        .button     = { 0.60f, 0.25f, 0.25f, 1.0f },
-        .hovered    = { 0.25f, 0.60f, 0.25f, 1.0f },
+        .background = { 0.04f, 0.06f, 0.12f, 1.0f },
+        .button     = { 0.01f, 0.17f, 0.75f, 1.0f },
+        .hovered    = { 0.46f, 0.57f, 1.00f, 1.0f },
     };
 
     bui->font_size = 14.0f;
@@ -83,7 +83,7 @@ internal void bui_begin_frame(Bui* bui, float width, float height)
     glm_ortho(0, width, 0, height, -1.0f, 1.0f, projection);
     glm_mat4_mul(projection, view, viewProjection);
 
-    renderer2D_begin_scene(&bui->renderer, viewProjection, bui->window_width, bui->window_height, 0);
+    renderer2D_begin_scene(&bui->renderer, viewProjection);
 }
 
 internal void bui_end_frame(Bui* bui)
@@ -98,7 +98,6 @@ internal void bui_move_cursor_down(Bui* bui, float extra_padding)
 {
     bui->cursor_y -= bui->font_size + extra_padding + bui->item_padding * 0.5f;
     bui->cursor_x = (bui->item_padding) * 0.5f;
-    // possibly remove ^
 }
 
 internal void bui_advance_cursor(Bui* bui, float extra_padding)
@@ -216,6 +215,7 @@ internal bool bui_button(Bui* bui, const char* label)
     glm_scale(transform, size);
 
     renderer2D_draw_quad(&bui->renderer, transform, color);
+    renderer2D_draw_rect(&bui->renderer, transform, bui->color_scheme.font);
 
     if (strlen(label) >= 2)
     {

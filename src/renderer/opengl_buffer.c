@@ -20,7 +20,7 @@ static void vertex_array_add_vertex_buffer(Vertex_Array* vertexArray, Vertex_Buf
     vertex_buffer_bind(vertexBuffer);
 
     vertexArray->vertex_buffer = vertexBuffer;
-    for (int i = 0; i < vertexBuffer.layout.element_count; i++)
+    for (uint32_t i = 0; i < vertexBuffer.layout.element_count; i++)
     {
         Vertex_Buffer_Layout_Element element = vertexBuffer.layout.elements[i];
         uint32_t num_components = 0;
@@ -38,9 +38,12 @@ static void vertex_array_add_vertex_buffer(Vertex_Array* vertexArray, Vertex_Buf
 
                 // TODO: should use the names for the index???? but names require knowing the shader
                 // glCheckError(GLint location = glGetAttribLocation(data.QuadShader.renderer_id, "a_Position"));
+                
                 glCheckError(glEnableVertexAttribArray(i));
+
                 // TODO: cater for normalized? currently just defaults to false
-                glCheckError(glVertexAttribPointer(i, num_components, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)element.offset));
+                glCheckError(glVertexAttribPointer(i, num_components, GL_FLOAT, GL_FALSE, vertexBuffer.layout.stride, (const void*)(uintptr_t)element.offset));
+
                 // TODO: if instanced rendering
                 // glVertexAttribDivisor(index, (int)element.PerInstance);
             } break;

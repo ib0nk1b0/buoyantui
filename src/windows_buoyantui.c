@@ -46,6 +46,7 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
     }
 }
 
+// int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine, int nShowCmd)
 int main(void)
 {
     Arena* arena = arena_create(Megabytes(64));
@@ -70,7 +71,9 @@ int main(void)
     glfwSetKeyCallback(window, glfw_key_callback);
     glfwMakeContextCurrent(window);
     gladLoadGL(glfwGetProcAddress);
-    glfwSwapInterval(1);
+
+    bool v_sync = true;
+    glfwSwapInterval(v_sync);
 
     // FreeType
 #ifdef USING_FREE_TYPE
@@ -117,7 +120,7 @@ int main(void)
     // Renderer2D_Data data = renderer2D_init(arena);
     // Texture2D fontAtlas = texture_create_from_file("W:\\buoyant\\resources\\textures\\charmap-oldschool_white.png");
 
-    mat4 view, projection, viewProjection;
+    mat4 view; // , projection, viewProjection;
     glm_mat4_identity(view);
 
     float scaleFactor = 2.5f;
@@ -154,7 +157,7 @@ int main(void)
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        float time = glfwGetTime();
+        float time = (float)glfwGetTime();
 
         // Input
         // Check if W key is down
@@ -163,8 +166,8 @@ int main(void)
         double mouse_y = 0;
         glfwGetCursorPos(window, &mouse_x, &mouse_y);
         mouse_y = height - mouse_y;
-        bui->mouse_x = mouse_x;
-        bui->mouse_y = mouse_y;
+        bui->mouse_x = (float)mouse_x;
+        bui->mouse_y = (float)mouse_y;
         int mouse_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
         if (mouse_state == GLFW_PRESS)
         {
@@ -179,7 +182,7 @@ int main(void)
         // glm_ortho(-ratio * scaleFactor, ratio * scaleFactor, -1.0f * scaleFactor, 1.0f * scaleFactor, -1.0f, 1.0f, projection);
         // glm_mat4_mul(view, projection, viewProjection);
 
-        bui_begin_frame(bui, width, height);
+        bui_begin_frame(bui, (float)width, (float)height);
 
         // if (bui_button(bui, "Blue Scheme", (vec2){width*0.5f, height*0.5f}, (vec2){300.0f, 100.0f}))
         // {
@@ -194,31 +197,31 @@ int main(void)
         // }
 
         // TODO: figure out why this works when first but not when last
-        char mousePosBuf[256];
-        sprintf(mousePosBuf, "MOUSE POS: %f, %f", bui->mouse_x, bui->mouse_y);
-
-        char hoveredBuf[256];
-        sprintf(hoveredBuf, "Hovered: %s", bui->hovered);
-
-        char activeBuf[256];
-        sprintf(activeBuf, "Active: %s", bui->active);
-
-        char screenDimensionsBuf[256];
-        sprintf(screenDimensionsBuf, "SCREEN: %d, %d", width, height);
+        // char mousePosBuf[256];
+        // sprintf(mousePosBuf, "MOUSE POS: %f, %f", bui->mouse_x, bui->mouse_y);
+        //
+        // char hoveredBuf[256];
+        // sprintf(hoveredBuf, "Hovered: %s", bui->hovered);
+        //
+        // char activeBuf[256];
+        // sprintf(activeBuf, "Active: %s", bui->active);
+        //
+        // char screenDimensionsBuf[256];
+        // sprintf(screenDimensionsBuf, "SCREEN: %d, %d", width, height);
 
 #ifdef BUI_AUTO_LAYOUT
-        bui_text(bui, mousePosBuf);
-        bui_same_line(bui);
-        bui_text(bui, "|");
-        bui_same_line(bui);
-        bui_text(bui, screenDimensionsBuf);
-        bui_text(bui, hoveredBuf);
-        bui_same_line(bui);
-        bui_text(bui, "|");
-        bui_same_line(bui);
-        bui_text(bui, activeBuf);
-
-        bui_text(bui, "");
+        // bui_text(bui, mousePosBuf);
+        // bui_same_line(bui);
+        // bui_text(bui, "|");
+        // bui_same_line(bui);
+        // bui_text(bui, screenDimensionsBuf);
+        // bui_text(bui, hoveredBuf);
+        // bui_same_line(bui);
+        // bui_text(bui, "|");
+        // bui_same_line(bui);
+        // bui_text(bui, activeBuf);
+        //
+        // bui_text(bui, "");
 
         bui_text(bui, "Some text 1");
         bui_text(bui, "Some text 2");
@@ -248,7 +251,7 @@ int main(void)
             bui->color_scheme = default_scheme;
         }
 
-        // Calculator
+        // Basic Calculator
 
         typedef enum
         {

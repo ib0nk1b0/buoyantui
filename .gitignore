@@ -3,3 +3,8 @@
 build/
 
 *.sln
+
+*.pdb
+*.obj
+*.ilk
+*.rdi

@@ -71,6 +71,7 @@ static Shader shader_compile_from_file(const char* filepath)
             char infoLog[512];
             glGetProgramInfoLog(program, 512, NULL, infoLog);
             printf("Program linking error: %s\n", infoLog);
+            assert(false);
         }
     }
 
@@ -93,7 +94,7 @@ static void shader_set_uniform_cache(Arena* arena, Shader* shader, char** unifor
     for (uint32_t i = 0; i < uniform_count; i++)
     {
         Shader_Uniform* uniform = &shader->uniform_cache[i];
-        uint32_t name_len = strlen(uniform_names[i]);
+        size_t name_len = strlen(uniform_names[i]);
         uniform->name = ArenaPushArray(arena, char, (name_len + 1));
         
         strcpy(uniform->name, uniform_names[i]);
@@ -105,7 +106,7 @@ static void shader_set_uniform_cache(Arena* arena, Shader* shader, char** unifor
 static uint32_t shader_get_location_from_cache(Shader shader, const char* name)
 {
     uint32_t location = -1;
-    for (int i = 0; i < shader.uniform_count; i++)
+    for (uint32_t i = 0; i < shader.uniform_count; i++)
     {
         if (strcmp(shader.uniform_cache[i].name, name) == 0)
         {

@@ -6,22 +6,6 @@ typedef struct VertexBuffer Vertex_Buffer;
 typedef struct VertexBufferLayout Vertex_Buffer_Layout;
 typedef struct IndexBuffer Index_Buffer;
 
-typedef struct
-{
-    vec3  pos;
-    vec4  color;
-    vec2  texture_coords;
-    float texture_index;
-} Vertex;
-
-static const vec3 quadVertexPositions[4] =
-{
-    { -0.5f, -0.5f, 0.0f },
-    {  0.5f, -0.5f, 0.0f },
-    {  0.5f,  0.5f, 0.0f },
-    { -0.5f,  0.5f, 0.0f },
-};
- 
 typedef enum ShaderDataType
 {
     VERTEX_ATTRIB_FLOAT1,
