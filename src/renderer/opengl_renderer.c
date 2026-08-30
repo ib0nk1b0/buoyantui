@@ -86,14 +86,17 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
     data.LineVertexPtr = data.LineVertexBase;
 
     // TODO: Clenup
-    char** uniform_names = ArenaPushArray(arena, char*, 1);
+    char** uniform_names = ArenaPushArray(arena, char*, 2);
     char* u_ViewProjection = "u_ViewProjection";
+    char* u_Textures = "u_Textures";
 
     uniform_names[0] = ArenaPushArray(arena, char, strlen(u_ViewProjection)+1);
     strcpy(uniform_names[0], u_ViewProjection);
+    uniform_names[1] = ArenaPushArray(arena, char, strlen(u_Textures)+1);
+    strcpy(uniform_names[1], u_Textures);
 
-    shader_set_uniform_cache(arena, &data.QuadShader, uniform_names, 1);
-    shader_set_uniform_cache(arena, &data.LineShader, uniform_names, 1);
+    shader_set_uniform_cache(arena, &data.QuadShader, uniform_names, 2);
+    shader_set_uniform_cache(arena, &data.LineShader, uniform_names, 2);
 
     data.MaxTextureSlots = 32;
     data.TextureSlots = ArenaPushArray(arena, Texture2D, data.MaxTextureSlots);
@@ -118,28 +121,18 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
 
 internal void renderer2D_begin_scene(Renderer2D_Data* data, mat4 camera)
 {
-    data->QuadVertexPtr = data->QuadVertexBase;
-    data->QuadIndexCount = 0;
+    shader_bind(&data->QuadShader);
+    shader_upload_uniform_mat4(&data->QuadShader, "u_ViewProjection", camera);
 
-    data->TextVertexPtr = data->TextVertexBase;
-    data->TextIndexCount = 0;
-
-    data->LineVertexPtr = data->LineVertexBase;
-    data->LineIndexCount = 0;
-
-    shader_bind(data->QuadShader);
-    shader_upload_uniform_mat4(data->QuadShader, "u_ViewProjection", camera);
-
-    shader_bind(data->LineShader);
-    shader_upload_uniform_mat4(data->LineShader, "u_ViewProjection", camera);
+    shader_bind(&data->LineShader);
+    shader_upload_uniform_mat4(&data->LineShader, "u_ViewProjection", camera);
 }
 
-internal void renderer2D_end_scene(Renderer2D_Data* data)
+internal void renderer2D_flush(Renderer2D_Data* data)
 {
     if (data->QuadIndexCount)
     {
-        shader_bind(data->QuadShader);
-        vertex_array_bind(data->QuadVertexArray);
+        shader_bind(&data->QuadShader);
 
         size_t size = (uint8_t*)data->QuadVertexPtr - (uint8_t*)data->QuadVertexBase;
         vertex_buffer_set_data(data->QuadVertexBuffer, data->QuadVertexBase, size);
@@ -149,17 +142,14 @@ internal void renderer2D_end_scene(Renderer2D_Data* data)
             texture_bind(data->TextureSlots[i], i);
         }
 
-        // TODO: go through uniform cache
-        glCheckError(GLint location = glGetUniformLocation(data->QuadShader.renderer_id, "u_Textures"));
-        glCheckError(glUniform1iv(location, data->TextureSlotIndex, (int*)data->TextureSamplers));
+        shader_upload_uniform_int_array(&data->QuadShader, "u_Textures", data->TextureSlotIndex, data->TextureSamplers);
 
-        glCheckError(glCheckError(glDrawElements(GL_TRIANGLES, data->QuadIndexCount, GL_UNSIGNED_INT, NULL)));
+        renderer_api_draw_elements(&data->QuadVertexArray, data->QuadIndexCount);
     }
 
     if (data->TextIndexCount)
     {
-        shader_bind(data->QuadShader);
-        vertex_array_bind(data->TextVertexArray);
+        shader_bind(&data->QuadShader);
 
         size_t size = (uint8_t*)data->TextVertexPtr - (uint8_t*)data->TextVertexBase;
         vertex_buffer_set_data(data->TextVertexBuffer, data->TextVertexBase, size);
@@ -169,23 +159,35 @@ internal void renderer2D_end_scene(Renderer2D_Data* data)
             texture_bind(data->TextureSlots[i], i);
         }
 
-        glCheckError(GLint location = glGetUniformLocation(data->QuadShader.renderer_id, "u_Textures"));
-        glCheckError(glUniform1iv(location, data->TextureSlotIndex, (int*)data->TextureSamplers));
+        shader_upload_uniform_int_array(&data->QuadShader, "u_Textures", data->TextureSlotIndex, data->TextureSamplers);
 
-        glCheckError(glCheckError(glDrawElements(GL_TRIANGLES, data->TextIndexCount, GL_UNSIGNED_INT, NULL)));
+        renderer_api_draw_elements(&data->TextVertexArray, data->TextIndexCount);
     }
 
     if (data->LineIndexCount)
     {
-        shader_bind(data->LineShader);
-        vertex_array_bind(data->LineVertexArray);
+        shader_bind(&data->LineShader);
 
         size_t size = (uint8_t*)data->LineVertexPtr - (uint8_t*)data->LineVertexBase;
         vertex_buffer_set_data(data->LineVertexBuffer, data->LineVertexBase, size);
 
-        glCheckError(glLineWidth(2.0f));
-        glCheckError(glDrawArrays(GL_LINES, 0, data->LineIndexCount));
+        renderer_api_set_line_width(1.0f);
+        renderer_api_draw_lines(&data->LineVertexArray, data->LineIndexCount);
     }
+
+    data->QuadVertexPtr = data->QuadVertexBase;
+    data->QuadIndexCount = 0;
+
+    data->TextVertexPtr = data->TextVertexBase;
+    data->TextIndexCount = 0;
+
+    data->LineVertexPtr = data->LineVertexBase;
+    data->LineIndexCount = 0;
+}
+
+internal void renderer2D_end_scene(Renderer2D_Data* data)
+{
+    renderer2D_flush(data);
 }
 
 internal void renderer2D_draw_quad(Renderer2D_Data* data, mat4 transform, vec4 color)
@@ -211,9 +213,9 @@ internal void renderer2D_draw_textured_qaud_uvs(Renderer2D_Data* data, Texture2D
     // TODO: test for end of batch and then flush and start again
     if (data->QuadIndexCount >= data->MaxIndices)
     {
-        printf("ERROR: ran out of quads this batch! Implement flushing\n");
-        return;
+        renderer2D_flush(data);
     }
+
     float texture_index = -1.0f;
     for (uint32_t i = 0; i < data->TextureSlotIndex; i++)
     {
@@ -245,6 +247,11 @@ internal void renderer2D_draw_textured_qaud_uvs(Renderer2D_Data* data, Texture2D
 
 internal void renderer2D_draw_rect(Renderer2D_Data* data, mat4 transform, vec4 color)
 {
+    if (data->LineIndexCount + 8 >= data->MaxIndices)
+    {
+        renderer2D_flush(data);
+    }
+
     vec3 lines[4];
     for (uint8_t i = 0; i < 4; i++)
     {
@@ -270,8 +277,7 @@ internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font
     // TODO: use different batch pool for strings
     if (data->TextIndexCount + (string_size * 6) >= data->MaxIndices)
     {
-        printf("ERROR: ran out of quads this batch! Implement flushing\n");
-        return;
+        renderer2D_flush(data);
     }
 
     float texture_index = -1.0f;
@@ -350,6 +356,11 @@ internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font
 
 internal void renderer2D_draw_line(Renderer2D_Data* data, vec2 p0, vec2 p1, vec4 color)
 {
+    if (data->LineIndexCount + 2 >= data->MaxIndices)
+    {
+        renderer2D_flush(data);
+    }
+
     vec3 p0_vec3 = { p0[0], p0[1], 0.0f };
     vec3 p1_vec3 = { p1[0], p1[1], 0.0f };
 

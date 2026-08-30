@@ -1,4 +1,5 @@
 #include "bui.h"
+#include "buoyantui.h"
 
 internal bool bui_is_mouse_in_window(Bui* bui)
 {
@@ -59,9 +60,11 @@ internal Bui* bui_init()
         .hovered    = { 0.46f, 0.57f, 1.00f, 1.0f },
     };
 
-    bui->font_size = 14.0f;
+    bui->font_size = 11.0f;
     bui->item_padding = 16.0f;
     bui->button_padding = 16.0f;
+
+    bui->current_window = NULL;
 
     return bui;
 }
@@ -73,6 +76,14 @@ internal void bui_begin_frame(Bui* bui, float width, float height)
 
     bui->cursor_x = bui->item_padding * 0.5f;
     bui->cursor_y = bui->window_height - (bui->font_size + bui->item_padding) * 0.5f;
+
+    double x = 0.0f;
+    double y = 0.0f;
+    platform_input_get_mouse_pos(&x, &y);
+    bui->mouse_x = (float)x;
+    bui->mouse_y = (float)y;
+
+    bui->mouse_down = platform_input_is_mouse_down(BUI_MOUSE_LEFT);
 
     mat4 transform, view, projection, viewProjection;
 
@@ -88,16 +99,78 @@ internal void bui_begin_frame(Bui* bui, float width, float height)
 
 internal void bui_end_frame(Bui* bui)
 {
-    renderer2D_end_scene(&bui->renderer);
     bui->mouse_was_down = bui->mouse_down;
+    renderer2D_end_scene(&bui->renderer);
 }
 
-#ifdef BUI_AUTO_LAYOUT
+internal void bui_begin_window(Bui* bui, const char* label, int x, int y, int width, int height)
+{
+    if (bui->current_window != NULL)
+    {
+        printf("Only support one window at a time\n");
+        assert(false);
+        return;
+    }
+
+    bui->current_window = label;
+    bui->current_window_x = x;
+    bui->current_window_y = y;
+    bui->current_window_width = width;
+    bui->current_window_height = height;
+
+    bui->cursor_x_return = bui->cursor_x;
+    bui->cursor_y_return = bui->cursor_y;
+
+    bui->cursor_x = (float)x + bui->item_padding * 0.5f;
+    bui->cursor_y = (float)y + (float)height - (bui->font_size + bui->item_padding) * 0.5f;
+    
+    renderer2D_flush(&bui->renderer);
+    renderer_api_enable_scissor();
+    renderer_api_scissor(x - 1, y - 1, width + 1, height + 1);
+
+    mat4 transform = GLM_MAT4_IDENTITY_INIT;
+
+    vec2 pos = { (float)x + (float)width * 0.5f, (float)y + (float)height * 0.5f };
+    vec2 size = { (float)width, (float)height };
+
+    glm_translate_x(transform, pos[0]);
+    glm_translate_y(transform, pos[1]);
+    glm_translate_z(transform, -0.5f);
+
+    glm_scale(transform, size);
+
+    renderer2D_draw_quad(&bui->renderer, transform, bui->color_scheme.background);
+    renderer2D_draw_rect(&bui->renderer, transform, bui->color_scheme.font);
+
+    // for (int i = 0; i < 13; i++)
+    // {
+    //     mat4 box_transform = GLM_MAT4_IDENTITY_INIT;
+    //     glm_translate_x(box_transform, (float)(x));
+    //     glm_translate_y(box_transform, (float)y + (float)height * 0.5f);
+    //     glm_translate_z(box_transform, 0.0f);
+    //     glm_scale(box_transform, (vec2){ 10.0f, 10.0f });
+    //     glm_translate_x(box_transform, (float)i * 2);
+    //     renderer2D_draw_quad(&bui->renderer, box_transform, (vec4){ 1.0f, 0.0f, 0.0f, 1.0f });
+    // }
+}
+
+internal void bui_end_window(Bui* bui)
+{
+    bui->current_window = NULL;
+    bui->cursor_x = bui->cursor_x_return;
+    bui->cursor_y = bui->cursor_y_return;
+    renderer2D_flush(&bui->renderer);
+    renderer_api_disable_scissor();
+}
 
 internal void bui_move_cursor_down(Bui* bui, float extra_padding)
 {
     bui->cursor_y -= bui->font_size + extra_padding + bui->item_padding * 0.5f;
-    bui->cursor_x = (bui->item_padding) * 0.5f;
+    bui->cursor_x = bui->item_padding * 0.5f;
+    if (bui->current_window != NULL)
+    {
+        bui->cursor_x += bui->current_window_x;
+    }
 }
 
 internal void bui_advance_cursor(Bui* bui, float extra_padding)
@@ -228,8 +301,9 @@ internal bool bui_button(Bui* bui, const char* label)
 
     mat4 label_transform = GLM_MAT4_IDENTITY_INIT;
 
-    glm_translate_x(label_transform, pos[0] - ((float)strlen(label) * bui->font_size - bui->button_padding) * 0.5f);
+    glm_translate_x(label_transform, pos[0] - (size[0] * 0.5f) + (bui->button_padding + bui->font_size) * 0.5f);
     glm_translate_y(label_transform, pos[1]);
+    glm_translate_z(label_transform, 0.5f); // NOTE: to ensure on top with depth buffer enabled
     glm_scale(label_transform, (vec2){ bui->font_size, bui->font_size });
 
     renderer2D_draw_string(&bui->renderer, bui->fontAtlas, label, label_transform, bui->color_scheme.font);
@@ -255,101 +329,4 @@ internal bool bui_checkbox(Bui* bui, const char* label, bool* checked)
 
     return result;
 }
-
-#else
-internal void bui_text(Bui* bui, const char* text, vec2 pos, vec2 size)
-{
-    mat4 transform = GLM_MAT4_IDENTITY_INIT;
-
-    glm_translate_x(transform, pos[0]);
-    glm_translate_y(transform, pos[1]);
-
-    glm_scale(transform, size);
-
-    renderer2D_draw_string(&bui->renderer, bui->fontAtlas, text, transform, bui->color_scheme.font);
-}
-
-internal bool bui_button(Bui* bui, const char* label, vec2 pos, vec2 size)
-{
-    // TODO: error checking
-
-    /*
-     * if active
-     *      if mouse up
-     *          if hovered
-     *              return true
-     *          unset active
-     *          return false
-     * if hovered
-     *      if mouse down
-     *          set active
-     *
-     * if inside
-     * */
-
-    if (bui_is_active(bui, label))
-    {
-        if (bui->mouse_was_down && !bui->mouse_down) // NOTE: mouse went up
-        {
-            if (bui_is_hovered(bui, label))
-            {
-                bui->active = NULL;
-                return true;
-            }
-            bui->active = NULL;
-        }
-    }
-    else if (bui_is_hovered(bui, label))
-    {
-        if (!bui->mouse_was_down && bui->mouse_down) // NOTE: mouse went down
-        {
-            bui_set_active(bui, label);
-        }
-    }
-
-    vec4 color;
-    if (bui_is_mouse_hovered(bui, pos, size))
-    {
-        glm_vec4_copy(bui->color_scheme.hovered, color);
-        bui->hovered = label;
-    }
-    else
-    {
-        glm_vec4_copy(bui->color_scheme.button, color);
-        if (bui->hovered)
-        {
-            if (strcmp(bui->hovered, label) == 0)
-            {
-                bui->hovered = NULL;
-            }
-        }
-    }
-
-    mat4 transform = GLM_MAT4_IDENTITY_INIT;
-
-    glm_translate_x(transform, pos[0]);
-    glm_translate_y(transform, pos[1]);
-
-    glm_scale(transform, size);
-
-    renderer2D_draw_quad(&bui->renderer, transform, color);
-
-    if (strlen(label) >= 2)
-    {
-        if (label[0] == '#' && label[1] == '#')
-        {
-            // NOTE: just use as ID
-            return false;
-        }
-    }
-
-    // TODO: auto scaling for text length
-    glm_translate_x(transform, -0.42f);
-    glm_scale(transform, (vec2){1.0f / (float)strlen(label), 0.8f });
-
-    renderer2D_draw_string(&bui->renderer, bui->fontAtlas, label, transform, bui->color_scheme.font);
-
-    return false;
-}
-#endif // BUI_AUTO_LAYOUT
 

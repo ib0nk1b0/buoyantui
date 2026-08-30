@@ -1,7 +1,7 @@
 #define CBUILD_IMPLEMENTATION
 #include "cbuild.h"
 
-#define IncludeDirs "/I\"vendor\\GLFW\\include\" /I\"vendor\\glad\\include\" /I\"vendor\\cglm\\include\" /I\"vendor\\stb_image\" /I\"vendor\\freetype-2.14.3\\include\""
+#define IncludeDirs "/I\"vendor\\GLFW\\include\" /I\"vendor\\glad\\include\" /I\"vendor\\cglm\\include\" /I\"vendor\\stb_image\""
 #define CommonCompilerFlags "/DGLFW_STATIC /W3 /wd4996 /Zi /MT /nologo"
 #define Files "\"src\\windows_buoyantui.c\" \"vendor\\glad\\src\\gl.c\""
 #define LibPaths "/LIBPATH:\"vendor\\GLFW\\lib-vc2022\""

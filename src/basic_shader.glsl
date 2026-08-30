@@ -15,6 +15,7 @@ layout(location = 2) out float v_TexIndex;
 void main()
 {
     v_Color = a_Color;
+    // v_Color = vec4(0.0, 0.0, a_Position.z, 1.0);
     v_TexCoord = a_TexCoord;
     v_TexIndex = a_TexIndex;
 

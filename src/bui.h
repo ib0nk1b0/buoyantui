@@ -31,6 +31,9 @@ typedef struct
     float            cursor_y;
     float            old_cursor_x;
     float            old_cursor_y;
+    // TODO: think about this. Used for returning to after window rendering...
+    float            cursor_x_return; 
+    float            cursor_y_return; 
 
     float            last_item_x;
     float            last_item_y;
@@ -44,6 +47,12 @@ typedef struct
     float            mouse_y;
     bool             mouse_down;
     bool             mouse_was_down;
+
+    Bui_Id           current_window;
+    int              current_window_x;
+    int              current_window_y;
+    int              current_window_width;
+    int              current_window_height;
 } Bui;
 
 internal Bui* bui_init();
@@ -51,16 +60,14 @@ internal Bui* bui_init();
 internal void bui_begin_frame(Bui* bui, float width, float height);
 internal void bui_end_frame(Bui* bui);
 
-#define BUI_AUTO_LAYOUT
-#ifdef BUI_AUTO_LAYOUT
+internal void bui_begin_window(Bui* bui, const char* label, int x, int y, int width, int height);
+internal void bui_end_window(Bui* bui);
+
 internal void bui_set_next_pos(Bui* bui, vec2 pos);
 internal void bui_same_line(Bui* bui);
+
 internal void bui_text(Bui* bui, const char* text);
 internal bool bui_button(Bui* bui, const char* label);
 internal bool bui_checkbox(Bui* bui, const char* label, bool* checked);
-#else
-internal void bui_text(Bui* bui, const char* text, vec2 pos, vec2 size);
-internal bool bui_button(Bui* bui, const char* label, vec2 pos, vec2 size);
-#endif // BUI_AUTO_LAYOUT
 
 #endif // BUI_H

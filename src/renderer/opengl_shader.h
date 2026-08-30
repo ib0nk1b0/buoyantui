@@ -14,13 +14,14 @@ typedef struct
     uint32_t        renderer_id;
 } Shader;
 
-static Shader shader_compile_from_file(const char* filepath);
+internal Shader shader_compile_from_file(const char* filepath);
 
-static void shader_set_uniform_cache(Arena* arena, Shader* shader, char** uniform_names, uint32_t uniform_count);
+internal void shader_set_uniform_cache(Arena* arena, Shader* shader, char** uniform_names, uint32_t uniform_count);
 
-static void shader_upload_uniform_float(Shader shader, const char* name, float value);
-static void shader_upload_uniform_mat4(Shader shader, const char* name,  mat4 value);
+internal void shader_upload_uniform_int_array(const Shader* shader, const char* name, int count, int* data);
+internal void shader_upload_uniform_float(const Shader* shader, const char* name, float value);
+internal void shader_upload_uniform_mat4(const Shader* shader, const char* name,  mat4 value);
 
-static void shader_bind(Shader shader);
+internal void shader_bind(const Shader* shader);
 
 #endif // OPENGL_SHADER_H

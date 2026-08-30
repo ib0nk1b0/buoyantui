@@ -103,21 +103,27 @@ static void shader_set_uniform_cache(Arena* arena, Shader* shader, char** unifor
     }
 }
 
-static uint32_t shader_get_location_from_cache(Shader shader, const char* name)
+static uint32_t shader_get_location_from_cache(const Shader* shader, const char* name)
 {
     uint32_t location = -1;
-    for (uint32_t i = 0; i < shader.uniform_count; i++)
+    for (uint32_t i = 0; i < shader->uniform_count; i++)
     {
-        if (strcmp(shader.uniform_cache[i].name, name) == 0)
+        if (strcmp(shader->uniform_cache[i].name, name) == 0)
         {
-            location = shader.uniform_cache[i].location;
+            location = shader->uniform_cache[i].location;
             break;
         }
     }
     return location;
 }
 
-static void shader_upload_uniform_float(Shader shader, const char* name, float value)
+internal void shader_upload_uniform_int_array(const Shader* shader, const char* name, int count, int* data)
+{
+    uint32_t location = shader_get_location_from_cache(shader, name);
+    glCheckError(glUniform1iv(location, count, data));
+}
+
+static void shader_upload_uniform_float(const Shader* shader, const char* name, float value)
 {
     // NOTE: assuming the cache has already been set up
     // NOTE: check if exists in shader cache...
@@ -126,7 +132,7 @@ static void shader_upload_uniform_float(Shader shader, const char* name, float v
 
 }
 
-static void shader_upload_uniform_mat4(Shader shader, const char* name,  mat4 value)
+static void shader_upload_uniform_mat4(const Shader* shader, const char* name,  mat4 value)
 {
     // NOTE: assuming the cache has already been set up
     // NOTE: check if exists in shader cache...
@@ -134,7 +140,7 @@ static void shader_upload_uniform_mat4(Shader shader, const char* name,  mat4 va
     glCheckError(glUniformMatrix4fv(location, 1, GL_FALSE, value[0]));
 }
 
-static void shader_bind(Shader shader)
+static void shader_bind(const Shader* shader)
 {
-    glUseProgram(shader.renderer_id);
+    glUseProgram(shader->renderer_id);
 }
