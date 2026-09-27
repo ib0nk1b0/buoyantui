@@ -59,6 +59,16 @@ internal void buoyantui_render_ui(Bui* bui, float width, float height)
     //     bui->color_scheme = default_scheme;
     // }
 
+    bui_begin_window(bui, "A Window", (int)(width*0.5f), (int)(height*0.5f), 200, 200);
+
+    bui_text(bui, "[1]Some Text");
+    bui_text(bui, "[2]Some Text");
+    bui_text(bui, "[3]Some Text");
+    bui_text(bui, "[4]Some Text");
+    bui_text(bui, "[5]Some Text");
+    bui_text(bui, "[6]Some Text");
+
+    bui_end_window(bui);
 
     static bool show_calculator = true;
     if (bui_button(bui, "Toggle Calculator"))

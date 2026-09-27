@@ -18,6 +18,9 @@
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
 
+// #include <ft2build.h>
+// #include FT_FREETYPE_H  
+
 // My includes
 #include "utils.h"
 
@@ -125,6 +128,20 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // FT_Library ft;
+    // if (FT_Init_FreeType(&ft))
+    // {
+    //     printf("Could not init freetype\n");
+    //     assert(false);
+    // }
+    //
+    // FT_Face face;
+    // if (FT_New_Face(ft, "resources/fonts/opensans/OpenSans-Regular.ttf", 0, &face))
+    // {
+    //     printf("Failed to load font\n");
+    //     assert(false);
+    // }
 
     // NOTE: init bui
     Bui* bui = bui_init();

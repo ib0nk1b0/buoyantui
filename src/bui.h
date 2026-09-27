@@ -7,6 +7,7 @@ typedef struct
 {
     vec4 font;
     vec4 background;
+    vec4 header_background;
     vec4 button;
     vec4 hovered;
 } Bui_Color_Scheme;

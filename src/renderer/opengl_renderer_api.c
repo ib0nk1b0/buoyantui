@@ -29,6 +29,16 @@ internal void renderer_api_draw_lines(const Vertex_Array* vertex_array, uint32_t
     glEnable(GL_DEPTH_TEST);
 }
 
+internal void renderer_api_enable_depth_test()
+{
+    glEnable(GL_DEPTH_TEST);
+}
+
+internal void renderer_api_disable_depth_test()
+{
+    glDisable(GL_DEPTH_TEST);
+}
+
 internal void renderer_api_enable_scissor()
 {
     glEnable(GL_SCISSOR_TEST);

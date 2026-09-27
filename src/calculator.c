@@ -36,7 +36,7 @@ void render_calculator(Bui* bui)
 
     // bui_text(bui, "");
 
-    bui_begin_window(bui, "Main", 100, 100, 200, 200);
+    bui_begin_window(bui, "Calculator", 100, 100, 160, 220);
 
     bui_text(bui, calculatorScreenBuf);
 
