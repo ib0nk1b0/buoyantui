@@ -21,10 +21,10 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
 
     uint32_t quad_num_elements = 4;
     Vertex_Buffer_Layout_Element* quad_layout_elements = ArenaPushArray(arena, Vertex_Buffer_Layout_Element, quad_num_elements);
-    quad_layout_elements[0] = (Vertex_Buffer_Layout_Element){ .name = "a_Position", .type = VERTEX_ATTRIB_FLOAT3, .offset = offsetof(QuadVertex, pos) };
-    quad_layout_elements[1] = (Vertex_Buffer_Layout_Element){ .name = "a_Color",    .type = VERTEX_ATTRIB_FLOAT4, .offset = offsetof(QuadVertex, color) };
-    quad_layout_elements[2] = (Vertex_Buffer_Layout_Element){ .name = "a_TexCoord", .type = VERTEX_ATTRIB_FLOAT2, .offset = offsetof(QuadVertex, texture_coords) };
-    quad_layout_elements[3] = (Vertex_Buffer_Layout_Element){ .name = "a_TexIndex", .type = VERTEX_ATTRIB_FLOAT1, .offset = offsetof(QuadVertex, texture_index) };
+    quad_layout_elements[0] = { .name = "a_Position", .type = VERTEX_ATTRIB_FLOAT3, .offset = offsetof(QuadVertex, pos) };
+    quad_layout_elements[1] = { .name = "a_Color",    .type = VERTEX_ATTRIB_FLOAT4, .offset = offsetof(QuadVertex, color) };
+    quad_layout_elements[2] = { .name = "a_TexCoord", .type = VERTEX_ATTRIB_FLOAT2, .offset = offsetof(QuadVertex, texture_coords) };
+    quad_layout_elements[3] = { .name = "a_TexIndex", .type = VERTEX_ATTRIB_FLOAT1, .offset = offsetof(QuadVertex, texture_index) };
 
     Vertex_Buffer_Layout quad_layout = vertex_buffer_layout_create(quad_layout_elements, quad_num_elements, sizeof(QuadVertex));
     vertex_buffer_set_layout(&data.QuadVertexBuffer, quad_layout);
@@ -36,10 +36,10 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
 
     uint32_t text_num_elements = 4;
     Vertex_Buffer_Layout_Element* text_layout_elements = ArenaPushArray(arena, Vertex_Buffer_Layout_Element, text_num_elements);
-    text_layout_elements[0] = (Vertex_Buffer_Layout_Element){ .name = "a_Position", .type = VERTEX_ATTRIB_FLOAT3, .offset = offsetof(QuadVertex, pos) };
-    text_layout_elements[1] = (Vertex_Buffer_Layout_Element){ .name = "a_Color",    .type = VERTEX_ATTRIB_FLOAT4, .offset = offsetof(QuadVertex, color) };
-    text_layout_elements[2] = (Vertex_Buffer_Layout_Element){ .name = "a_TexCoord", .type = VERTEX_ATTRIB_FLOAT2, .offset = offsetof(QuadVertex, texture_coords) };
-    text_layout_elements[3] = (Vertex_Buffer_Layout_Element){ .name = "a_TexIndex", .type = VERTEX_ATTRIB_FLOAT1, .offset = offsetof(QuadVertex, texture_index) };
+    text_layout_elements[0] = { .name = "a_Position", .type = VERTEX_ATTRIB_FLOAT3, .offset = offsetof(QuadVertex, pos) };
+    text_layout_elements[1] = { .name = "a_Color",    .type = VERTEX_ATTRIB_FLOAT4, .offset = offsetof(QuadVertex, color) };
+    text_layout_elements[2] = { .name = "a_TexCoord", .type = VERTEX_ATTRIB_FLOAT2, .offset = offsetof(QuadVertex, texture_coords) };
+    text_layout_elements[3] = { .name = "a_TexIndex", .type = VERTEX_ATTRIB_FLOAT1, .offset = offsetof(QuadVertex, texture_index) };
 
     Vertex_Buffer_Layout text_layout = vertex_buffer_layout_create(text_layout_elements, text_num_elements, sizeof(QuadVertex));
     vertex_buffer_set_layout(&data.TextVertexBuffer, text_layout);
@@ -51,8 +51,8 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
 
     uint32_t line_num_elements = 2;
     Vertex_Buffer_Layout_Element* line_layout_elements = ArenaPushArray(arena, Vertex_Buffer_Layout_Element, line_num_elements);
-    line_layout_elements[0] = (Vertex_Buffer_Layout_Element){ .name = "a_Position", .type = VERTEX_ATTRIB_FLOAT3, .offset = offsetof(LineVertex, pos) };
-    line_layout_elements[1] = (Vertex_Buffer_Layout_Element){ .name = "a_Color",    .type = VERTEX_ATTRIB_FLOAT4, .offset = offsetof(LineVertex, color) };
+    line_layout_elements[0] = { .name = "a_Position", .type = VERTEX_ATTRIB_FLOAT3, .offset = offsetof(LineVertex, pos) };
+    line_layout_elements[1] = { .name = "a_Color",    .type = VERTEX_ATTRIB_FLOAT4, .offset = offsetof(LineVertex, color) };
 
     Vertex_Buffer_Layout line_layout = vertex_buffer_layout_create(line_layout_elements, line_num_elements, sizeof(LineVertex));
     vertex_buffer_set_layout(&data.LineVertexBuffer, line_layout);
@@ -87,8 +87,8 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
 
     // TODO: Clenup
     char** uniform_names = ArenaPushArray(arena, char*, 2);
-    char* u_ViewProjection = "u_ViewProjection";
-    char* u_Textures = "u_Textures";
+    char u_ViewProjection[] = "u_ViewProjection";
+    char u_Textures[] = "u_Textures";
 
     uniform_names[0] = ArenaPushArray(arena, char, strlen(u_ViewProjection)+1);
     strcpy(uniform_names[0], u_ViewProjection);
@@ -110,16 +110,16 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
         data.TextureSamplers[i] = i;
     }
 
-    data.QuadVertexPositions = ArenaPushArray(arena, vec3, 4);
-    glm_vec3_copy((vec3){ -0.5f, -0.5f, 0.0f }, data.QuadVertexPositions[0]);
-    glm_vec3_copy((vec3){  0.5f, -0.5f, 0.0f }, data.QuadVertexPositions[1]);
-    glm_vec3_copy((vec3){  0.5f,  0.5f, 0.0f }, data.QuadVertexPositions[2]);
-    glm_vec3_copy((vec3){ -0.5f,  0.5f, 0.0f }, data.QuadVertexPositions[3]);
+    data.QuadVertexPositions = ArenaPushArray(arena, glm::vec4, 4);
+    data.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
+    data.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
+    data.QuadVertexPositions[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
+    data.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
     return data;
 }
 
-internal void renderer2D_begin_scene(Renderer2D_Data* data, mat4 camera)
+internal void renderer2D_begin_scene(Renderer2D_Data* data, const glm::mat4& camera)
 {
     shader_bind(&data->QuadShader);
     shader_upload_uniform_mat4(&data->QuadShader, "u_ViewProjection", camera);
@@ -142,7 +142,7 @@ internal void renderer2D_flush(Renderer2D_Data* data)
             texture_bind(data->TextureSlots[i], i);
         }
 
-        shader_upload_uniform_int_array(&data->QuadShader, "u_Textures", data->TextureSlotIndex, data->TextureSamplers);
+        shader_upload_uniform_int_array(&data->QuadShader, "u_Textures", data->TextureSlotIndex, (int*)data->TextureSamplers);
 
         renderer_api_draw_elements(&data->QuadVertexArray, data->QuadIndexCount);
     }
@@ -159,7 +159,7 @@ internal void renderer2D_flush(Renderer2D_Data* data)
             texture_bind(data->TextureSlots[i], i);
         }
 
-        shader_upload_uniform_int_array(&data->QuadShader, "u_Textures", data->TextureSlotIndex, data->TextureSamplers);
+        shader_upload_uniform_int_array(&data->QuadShader, "u_Textures", data->TextureSlotIndex, (int*)data->TextureSamplers);
 
         renderer_api_draw_elements(&data->TextVertexArray, data->TextIndexCount);
     }
@@ -190,14 +190,14 @@ internal void renderer2D_end_scene(Renderer2D_Data* data)
     renderer2D_flush(data);
 }
 
-internal void renderer2D_draw_quad(Renderer2D_Data* data, mat4 transform, vec4 color)
+internal void renderer2D_draw_quad(Renderer2D_Data* data, const glm::mat4& transform, const glm::vec4& color)
 {
     renderer2D_draw_textured_quad(data, data->TextureSlots[0], transform, color);
 }
 
-internal void renderer2D_draw_textured_quad(Renderer2D_Data* data, Texture2D texture, mat4 transform, vec4 color)
+internal void renderer2D_draw_textured_quad(Renderer2D_Data* data, Texture2D texture, const glm::mat4& transform, const glm::vec4& color)
 {
-    vec2 quadTextureCoords[4] = 
+    glm::vec2 quadTextureCoords[4] = 
     {
         { 0.0f, 0.0f },
         { 1.0f, 0.0f },
@@ -208,7 +208,7 @@ internal void renderer2D_draw_textured_quad(Renderer2D_Data* data, Texture2D tex
     renderer2D_draw_textured_qaud_uvs(data, texture, transform, color, quadTextureCoords);
 }
 
-internal void renderer2D_draw_textured_qaud_uvs(Renderer2D_Data* data, Texture2D texture, mat4 transform, vec4 color, vec2* uvs)
+internal void renderer2D_draw_textured_qaud_uvs(Renderer2D_Data* data, Texture2D texture, const glm::mat4& transform, const glm::vec4& color, const glm::vec2* uvs)
 {
     // TODO: test for end of batch and then flush and start again
     if (data->QuadIndexCount >= data->MaxIndices)
@@ -234,44 +234,48 @@ internal void renderer2D_draw_textured_qaud_uvs(Renderer2D_Data* data, Texture2D
 
     for (uint32_t i = 0; i < data->NumVertices; i++)
     {
-        vec3 position;
-        glm_mat4_mulv3(transform, (float*)data->QuadVertexPositions[i], 1.0f, position);
-        glm_vec3_copy(position, data->QuadVertexPtr->pos);
-        glm_vec4_copy(color, data->QuadVertexPtr->color);
-        glm_vec2_copy((float*)uvs[i], data->QuadVertexPtr->texture_coords);
+        // vec3 position;
+        // glm_mat4_mulv3(transform, (float*)data->QuadVertexPositions[i], 1.0f, position);
+        // glm_vec3_copy(position, data->QuadVertexPtr->pos);
+        // glm_vec4_copy(color, data->QuadVertexPtr->color);
+        // glm_vec2_copy((float*)uvs[i], data->QuadVertexPtr->texture_coords);
+        data->QuadVertexPtr->pos = transform * data->QuadVertexPositions[i];
+        data->QuadVertexPtr->color = color;
+        data->QuadVertexPtr->texture_coords = uvs[i];
         data->QuadVertexPtr->texture_index = texture_index;
         data->QuadVertexPtr++;
     }
     data->QuadIndexCount += 6;
 }
 
-internal void renderer2D_draw_rect(Renderer2D_Data* data, mat4 transform, vec4 color)
+internal void renderer2D_draw_rect(Renderer2D_Data* data, const glm::mat4& transform, const glm::vec4& color)
 {
     if (data->LineIndexCount + 8 >= data->MaxIndices)
     {
         renderer2D_flush(data);
     }
 
-    vec3 lines[4];
+    glm::vec3 lines[4];
     for (uint8_t i = 0; i < 4; i++)
     {
-        vec3 position;
-        glm_mat4_mulv3(transform, (float*)data->QuadVertexPositions[i], 1.0f, position);
-        glm_vec3_copy(position, lines[i]);
+        // vec3 position;
+        // glm_mat4_mulv3(transform, (float*)data->QuadVertexPositions[i], 1.0f, position);
+        // glm_vec3_copy(position, lines[i]);
+        lines[i] = transform * data->QuadVertexPositions[i];
     }
 
-    renderer2D_draw_line(data, (vec2){ lines[0][0], lines[0][1] }, (vec2){ lines[1][0], lines[1][1] }, color);
-    renderer2D_draw_line(data, (vec2){ lines[1][0], lines[1][1] }, (vec2){ lines[2][0], lines[2][1] }, color);
-    renderer2D_draw_line(data, (vec2){ lines[2][0], lines[2][1] }, (vec2){ lines[3][0], lines[3][1] }, color);
-    renderer2D_draw_line(data, (vec2){ lines[3][0], lines[3][1] }, (vec2){ lines[0][0], lines[0][1] }, color);
+    renderer2D_draw_line(data, lines[0], lines[1], color);
+    renderer2D_draw_line(data, lines[1], lines[2], color);
+    renderer2D_draw_line(data, lines[2], lines[3], color);
+    renderer2D_draw_line(data, lines[3], lines[0], color);
 }
 
-internal void renderer2D_draw_string(Renderer2D_Data* data, Texture2D font, const char* string, mat4 transform, vec4 color)
+internal void renderer2D_draw_string(Renderer2D_Data* data, Texture2D font, const char* string, const glm::mat4& transform, const glm::vec4& color)
 {
     renderer2D_draw_string_sized(data, font, string, strlen(string), transform, color);
 }
 
-internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font, const char* string, size_t string_size, mat4 transform, vec4 color)
+internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font, const char* string, size_t string_size, const glm::mat4& transform, const glm::vec4& color)
 {
     // TODO: flushing
     // TODO: use different batch pool for strings
@@ -322,10 +326,10 @@ internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font
         size_t pYTop = (FONT_ROWS - row) * FONT_CHAR_HEIGHT + 1;
         size_t pYBottom = pYTop - FONT_CHAR_HEIGHT;
 
-        vec2 minNormalized = { (float)pXLeft / (float)FONT_WIDTH, (float)pYBottom / (float)FONT_HEIGHT };
-        vec2 maxNormalized = { (float)pXRight / (float)FONT_WIDTH, (float)pYTop / (float)FONT_HEIGHT };
+        glm::vec2 minNormalized = { (float)pXLeft / (float)FONT_WIDTH, (float)pYBottom / (float)FONT_HEIGHT };
+        glm::vec2 maxNormalized = { (float)pXRight / (float)FONT_WIDTH, (float)pYTop / (float)FONT_HEIGHT };
 
-        const vec2 fontTextureCoords[4] = 
+        const glm::vec2 fontTextureCoords[4] = 
         {
             { minNormalized[0], minNormalized[1] },
             { maxNormalized[0], minNormalized[1] },
@@ -336,14 +340,20 @@ internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font
         // TODO: test for end of batch and then flush and start again
         for (uint32_t j = 0; j < data->NumVertices; j++)
         {
-            vec3 position;
-            glm_vec3_copy((float*)data->QuadVertexPositions[j], position);
-            position[0] += x_offset;
-            position[1] -= y_offset;
-            glm_mat4_mulv3(transform, &position[0], 1.0f, position);
-            glm_vec3_copy(position, data->TextVertexPtr->pos);
-            glm_vec4_copy(color, data->TextVertexPtr->color);
-            glm_vec2_copy((float*)fontTextureCoords[j], data->TextVertexPtr->texture_coords);
+            // vec3 position;
+            // glm_vec3_copy((float*)data->QuadVertexPositions[j], position);
+            // position[0] += x_offset;
+            // position[1] -= y_offset;
+            // glm_mat4_mulv3(transform, &position[0], 1.0f, position);
+            // glm_vec3_copy(position, data->TextVertexPtr->pos);
+            // glm_vec4_copy(color, data->TextVertexPtr->color);
+            // glm_vec2_copy((float*)fontTextureCoords[j], data->TextVertexPtr->texture_coords);
+            glm::vec4 position = data->QuadVertexPositions[j];
+            position.x += x_offset;
+            position.y -= y_offset;
+            data->TextVertexPtr->pos = transform * position;
+            data->TextVertexPtr->color = color;
+            data->TextVertexPtr->texture_coords = fontTextureCoords[j];
             data->TextVertexPtr->texture_index = texture_index;
             data->TextVertexPtr++;
         }
@@ -354,22 +364,26 @@ internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font
 
 }
 
-internal void renderer2D_draw_line(Renderer2D_Data* data, vec2 p0, vec2 p1, vec4 color)
+internal void renderer2D_draw_line(Renderer2D_Data* data, const glm::vec2& p0, const glm::vec2& p1, const glm::vec4& color)
 {
     if (data->LineIndexCount + 2 >= data->MaxIndices)
     {
         renderer2D_flush(data);
     }
 
-    vec3 p0_vec3 = { p0[0], p0[1], 0.0f };
-    vec3 p1_vec3 = { p1[0], p1[1], 0.0f };
+    glm::vec3 p0_vec3 = { p0.x, p0.y, 0.0f };
+    glm::vec3 p1_vec3 = { p1.x, p1.y, 0.0f };
 
-    glm_vec3_copy(p0_vec3, data->LineVertexPtr->pos);
-    glm_vec4_copy(color, data->LineVertexPtr->color);
+    // glm_vec3_copy(p0_vec3, data->LineVertexPtr->pos);
+    // glm_vec4_copy(color, data->LineVertexPtr->color);
+    data->LineVertexPtr->pos = p0_vec3;
+    data->LineVertexPtr->color = color;
     data->LineVertexPtr++;
 
-    glm_vec3_copy(p1_vec3, data->LineVertexPtr->pos);
-    glm_vec4_copy(color, data->LineVertexPtr->color);
+    // glm_vec3_copy(p1_vec3, data->LineVertexPtr->pos);
+    // glm_vec4_copy(color, data->LineVertexPtr->color);
+    data->LineVertexPtr->pos = p1_vec3;
+    data->LineVertexPtr->color = color;
     data->LineVertexPtr++;
 
     data->LineIndexCount += 2;

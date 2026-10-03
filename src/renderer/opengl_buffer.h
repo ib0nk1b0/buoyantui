@@ -17,9 +17,9 @@ typedef enum ShaderDataType
 typedef struct VertexBufferLayoutElement
 {
     const char*      name;
+    Shader_Data_Type type;
     uint32_t         offset;
     uint32_t         size;
-    Shader_Data_Type type;
 } Vertex_Buffer_Layout_Element;
 
 typedef struct VertexBufferLayout

@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,9 +6,13 @@
 #include <time.h>
 #include <Windows.h>
 
-#define CGLM_IMPLEMENTATION
-#define CGLM_ALL_UNALIGNED
-#include <cglm/cglm.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+// #define CGLM_IMPLEMENTATION
+// #define CGLM_ALL_UNALIGNED
+// #include <cglm/cglm.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -24,17 +27,17 @@
 // My includes
 #include "utils.h"
 
-#include "renderer/opengl_buffer.c"
-#include "renderer/opengl_shader.c"
-#include "renderer/opengl_texture.c"
-#include "renderer/opengl_renderer_api.c"
-#include "renderer/opengl_renderer.c"
+#include "renderer/opengl_buffer.cpp"
+#include "renderer/opengl_shader.cpp"
+#include "renderer/opengl_texture.cpp"
+#include "renderer/opengl_renderer_api.cpp"
+#include "renderer/opengl_renderer.cpp"
 
-#include "bui.c"
+#include "bui.cpp"
 
-#include "calculator.c"
+#include "calculator.cpp"
 
-#include "buoyantui.c"
+#include "buoyantui.cpp"
 
 global GLFWwindow* g_Window = NULL;
 global uint32_t    g_Width = 0;
@@ -89,6 +92,8 @@ internal void glfw_key_callback(GLFWwindow* window, int key, int scancode, int a
     {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
+
+    buoyantui_key_callback(key, scancode, action, mods);
 }
 
 // int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -102,7 +107,7 @@ int main(void)
         return -1;
     }
 
-    g_Window = glfwCreateWindow(800, 800, "BuoyantUI", NULL, NULL);
+    g_Window = glfwCreateWindow(1600, 900, "BuoyantUI", NULL, NULL);
 
     if (g_Window == NULL)
     {
@@ -159,7 +164,7 @@ int main(void)
         glfwPollEvents();
 
         // TODO: glfwSetFramebufferSizeCallback
-        glfwGetFramebufferSize(g_Window, &g_Width, &g_Height);
+        glfwGetFramebufferSize(g_Window, (int*)&g_Width, (int*)&g_Height);
 
         renderer_api_clear(0, 0, g_Width, g_Height);
 

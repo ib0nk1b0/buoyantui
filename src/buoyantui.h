@@ -18,5 +18,6 @@ internal bool platform_input_is_mouse_down(Bui_Mouse button);
 
 // NOTE: services provided to the platform layer
 internal void buoyantui_update(Arena* arena, Bui* bui, float width, float height);
+internal void buoyantui_key_callback(int key, int scancode, int action, int mods);
 
 #endif // BUOYANTUI_H

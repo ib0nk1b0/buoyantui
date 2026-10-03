@@ -5,11 +5,11 @@ typedef const char* Bui_Id;
 
 typedef struct
 {
-    vec4 font;
-    vec4 background;
-    vec4 header_background;
-    vec4 button;
-    vec4 hovered;
+    glm::vec4 font;
+    glm::vec4 background;
+    glm::vec4 header_background;
+    glm::vec4 button;
+    glm::vec4 hovered;
 } Bui_Color_Scheme;
 
 typedef struct
@@ -20,7 +20,7 @@ typedef struct
     Bui_Id           hovered;
     
     Renderer2D_Data  renderer;
-    Texture2D        fontAtlas;
+    Texture2D        font_atlas;
 
     Bui_Color_Scheme color_scheme;
 
@@ -64,7 +64,7 @@ internal void bui_end_frame(Bui* bui);
 internal void bui_begin_window(Bui* bui, const char* label, int x, int y, int width, int height);
 internal void bui_end_window(Bui* bui);
 
-internal void bui_set_next_pos(Bui* bui, vec2 pos);
+internal void bui_set_next_pos(Bui* bui, const glm::vec2& pos);
 internal void bui_same_line(Bui* bui);
 
 internal void bui_text(Bui* bui, const char* text);

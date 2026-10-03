@@ -1,9 +1,9 @@
 #define CBUILD_IMPLEMENTATION
 #include "cbuild.h"
 
-#define IncludeDirs "/I\"vendor\\GLFW\\include\" /I\"vendor\\glad\\include\" /I\"vendor\\cglm\\include\" /I\"vendor\\stb_image\" /I\"vendor\\freetype-2.14.3\\include\""
-#define CommonCompilerFlags "/DGLFW_STATIC /W3 /wd4996 /Zi /MT /nologo"
-#define Files "\"src\\windows_buoyantui.c\" \"vendor\\glad\\src\\gl.c\""
+#define IncludeDirs "/I..\\vendor\\glm /I\"vendor\\GLFW\\include\" /I\"vendor\\glad\\include\" /I\"vendor\\stb_image\" /I\"vendor\\freetype-2.14.3\\include\""
+#define CommonCompilerFlags "/DGLFW_STATIC /W3 /wd4996 /Zi /MT /nologo /std:c++20"
+#define Files "\"src\\windows_buoyantui.cpp\" \"vendor\\glad\\src\\gl.c\""
 #define LibPaths "/LIBPATH:\"vendor\\GLFW\\lib-vc2022\""
 #define Libs "glfw3_mt.lib user32.lib gdi32.lib shell32.lib"
 
@@ -26,4 +26,6 @@ int main(int argc, char** argv)
     cbuild_cmd_append(&cmd, Libs);
 
     cbuild_cmd_end(&cmd);
+
+    // system("build\\windows_buoyantui.exe");
 }

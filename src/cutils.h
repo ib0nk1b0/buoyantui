@@ -97,10 +97,15 @@ void   cutils_arena_release(Arena* arena);
 void*  cutils_arena_push(Arena* arena, size_t size);
 void*  cutils_arena_pop(Arena* arena, size_t size);
 
-#define ArenaPushStruct(arena, T) (T*)cutils_arena_push(arena, sizeof(T))
-#define ArenaPushArray(arena, T, n) (T*)cutils_arena_push(arena, sizeof(T) * (n))
-#define ArenaPopStruct(arena, T) (T*)cutils_arena_pop(arena, sizeof(T))
-#define ArenaPopArray(arena, T, n) (T*)cutils_arena_pop(arena, sizeof(T) * (n))
+#define ArenaPushStruct(arena, T)   ((T*)cutils_arena_push((arena), sizeof(T)))
+#define ArenaPopStruct(arena, T)    ((T*)cutils_arena_pop((arena),  sizeof(T)))
+#define ArenaPushArray(arena, T, n) ((T*)cutils_arena_push((arena), sizeof(T) * (n)))
+#define ArenaPopArray(arena, T, n)  ((T*)cutils_arena_pop((arena),  sizeof(T) * (n)))
+
+// #define ArenaPushStruct(arena, T) ((T)*)(cutils_arena_push(arena, sizeof(T))
+// #define ArenaPushArray(arena, T, n) ((T)*)(cutils_arena_push(arena, sizeof(T) * (n))
+// #define ArenaPopStruct(arena, T) ((T)*)(cutils_arena_pop(arena, sizeof(T))
+// #define ArenaPopArray(arena, T, n) ((T)*)(cutils_arena_pop(arena, sizeof(T) * (n))
 
 typedef struct
 {
@@ -223,18 +228,18 @@ void* cutils_arena_pop(Arena* arena, size_t size)
 
 StringView cutils_sv_from_cstr(const char* cstr)
 {
-    return (StringView) {
-        .data = cstr,
-        .size = strlen(cstr),
-    };
+    StringView result;
+    result.data = cstr;
+    result.size = strlen(cstr);
+    return result;
 }
 
 StringView cutils_sv_from_parts(const char* str, size_t size)
 {
-    return (StringView) {
-        .data = str,
-        .size = size,
-    };
+    StringView result;
+    result.data = str;
+    result.size = size;
+    return result;
 }
 
 char* cutils_sv_make_cstr(Arena* arena, StringView sv)
@@ -246,7 +251,7 @@ char* cutils_sv_make_cstr(Arena* arena, StringView sv)
     }
     else
     {
-        result = malloc(sv.size + 1);
+        result = (char*)malloc(sv.size + 1);
     }
 
     memcpy(result, sv.data, sv.size);
@@ -377,7 +382,7 @@ StringView cutils_sv_read_entire_file(Arena* arena, const char* filepath)
 
 char* cutils_next_cmd_line_arg(int* argc, char*** argv)
 {
-    assert(argc > 0);
+    assert(*argc > 0);
     char* cmd = **argv;
     *argc -= 1;
     *argv += 1;

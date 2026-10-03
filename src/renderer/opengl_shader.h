@@ -20,7 +20,7 @@ internal void shader_set_uniform_cache(Arena* arena, Shader* shader, char** unif
 
 internal void shader_upload_uniform_int_array(const Shader* shader, const char* name, int count, int* data);
 internal void shader_upload_uniform_float(const Shader* shader, const char* name, float value);
-internal void shader_upload_uniform_mat4(const Shader* shader, const char* name,  mat4 value);
+internal void shader_upload_uniform_mat4(const Shader* shader, const char* name, const glm::mat4& value);
 
 internal void shader_bind(const Shader* shader);
 

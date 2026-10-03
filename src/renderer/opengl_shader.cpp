@@ -132,12 +132,12 @@ static void shader_upload_uniform_float(const Shader* shader, const char* name, 
 
 }
 
-static void shader_upload_uniform_mat4(const Shader* shader, const char* name,  mat4 value)
+static void shader_upload_uniform_mat4(const Shader* shader, const char* name, const glm::mat4& value)
 {
     // NOTE: assuming the cache has already been set up
     // NOTE: check if exists in shader cache...
     uint32_t location = shader_get_location_from_cache(shader, name);
-    glCheckError(glUniformMatrix4fv(location, 1, GL_FALSE, value[0]));
+    glCheckError(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value)));
 }
 
 static void shader_bind(const Shader* shader)
