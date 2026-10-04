@@ -1,11 +1,11 @@
 #include "buoyantui.h"
+#include "renderer/opengl_renderer.h"
 
 static bool show_menu = false;
+static bool show_grid = false;
 
-internal void buoyantui_render_ui(Bui* bui, float width, float height)
+internal void test_ui_stuff(Bui* bui, float width, float height)
 {
-    bui_begin_frame(bui, width, height);
-
     bui_text(bui, "Some text 1");
     bui_text(bui, "Some text 2");
     bui_text(bui, "Some text 3");
@@ -67,7 +67,10 @@ internal void buoyantui_render_ui(Bui* bui, float width, float height)
     {
         render_calculator(bui);
     }
+}
 
+internal void stats_menu(Bui* bui, float width, float height)
+{
     if (show_menu)
     {
         // TODO: figure out why this works when first but not when last
@@ -107,21 +110,84 @@ internal void buoyantui_render_ui(Bui* bui, float width, float height)
 
         bui_end_window(bui);
     }
+}
+
+internal void buoyantui_render_ui(Bui* bui, float width, float height)
+{
+    bui_begin_frame(bui, width, height);
+
+    // test_ui_stuff(bui, width, height);
+
+    stats_menu(bui, width, height);
 
     bui_end_frame(bui);
 }
 
-internal void buoyantui_update(Arena* arena, Bui* bui, float width, float height)
+internal void render_tile_map(Buoyantui* buoyantui)
 {
-
-    bool down = platform_input_is_key_down(BUI_KEY_W);
-    if (down)
+    for (int i = 0; i < buoyantui->map_height; i++)
     {
-        printf("key down...\n");
+        for (int j = 0; j < buoyantui->map_width; j++)
+        {
+            glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(j - buoyantui->map_width / 2, i - buoyantui->map_height / 2, 0.0f))
+                * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
+
+            int tile = buoyantui->tiles[i][j];
+            float tile_w = (float)buoyantui->tilemap.width / (float)buoyantui->tile_size;
+            float tile_h = (float)buoyantui->tilemap.height / (float)buoyantui->tile_size;
+
+            float x0 = (float)(tile % (int)tile_w);
+            if (x0 > 0.0f)
+            {
+                x0 /= tile_w;
+            }
+
+            float y0 = std::floor(tile / tile_w);
+            if (y0 > 0.0f)
+            {
+                 y0 /= tile_h;
+            }
+
+            float x1 = x0 + 1.0f / tile_w;
+            float y1 = y0 + 1.0f / tile_h;
+
+            glm::vec2 uvs[4] = {
+                { x0, y0 },
+                { x1, y0 },
+                { x1, y1 },
+                { x0, y1 }
+            };
+
+            renderer2D_draw_textured_quad_uvs(buoyantui->renderer, buoyantui->tilemap, transform, glm::vec4(1.0f), uvs);
+
+            if (show_grid)
+            {
+                transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.5f));
+                renderer2D_draw_rect(buoyantui->renderer, transform, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
+            }
+        }
     }
+}
+
+internal void buoyantui_update(Buoyantui* buoyantui, float width, float height)
+{
+    glm::mat4 camera, view, projection, viewProjection;
+
+    camera = glm::mat4(1.0f);
+
+    view = glm::inverse(camera);
+
+    projection = glm::ortho(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f);
+    viewProjection = projection * view;
+
+    renderer2D_begin_scene(buoyantui->renderer, viewProjection);
+
+    render_tile_map(buoyantui);
+
+    renderer2D_end_scene(buoyantui->renderer);
 
     // NOTE: rendering UI last... I had a reason...
-    buoyantui_render_ui(bui, width, height);
+    buoyantui_render_ui(buoyantui->bui, width, height);
 }
 
 internal void buoyantui_key_callback(int key, int scancode, int action, int mods)
@@ -129,5 +195,10 @@ internal void buoyantui_key_callback(int key, int scancode, int action, int mods
     if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
     {
         show_menu = !show_menu;
+    }
+
+    if (key == GLFW_KEY_G && action == GLFW_PRESS)
+    {
+        show_grid = !show_grid;
     }
 }

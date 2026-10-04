@@ -122,6 +122,8 @@ char*      cutils_sv_make_cstr(Arena* arena, StringView sv);
 StringView cutils_sv_trim(StringView sv);
 StringView cutils_sv_trim_left(StringView sv);
 StringView cutils_sv_trim_right(StringView sv);
+StringView cutils_sv_chop_left(StringView sv, size_t num_chars);
+StringView cutils_sv_chop_right(StringView sv, size_t num_chars);
 StringView cutils_sv_chop_by_delim(StringView* sv, char delim);
 StringView cutils_sv_chop_line(StringView* sv);
 
@@ -157,6 +159,8 @@ char* cutils_next_cmd_line_arg(int* argc, char*** argv);
 #define sv_trim cutils_sv_trim
 #define sv_trim_left cutils_sv_trim_left
 #define sv_trim_right cutils_sv_trim_right
+#define sv_chop_left cutils_sv_chop_left
+#define sv_chop_right cutils_sv_chop_right
 #define sv_chop_by_delim cutils_sv_chop_by_delim
 #define sv_chop_line cutils_sv_chop_line
 
@@ -281,6 +285,32 @@ StringView cutils_sv_trim_right(StringView sv)
     {
         sv.size -= 1;
     }
+
+    return sv;
+}
+
+StringView cutils_sv_chop_left(StringView sv, size_t num_chars)
+{
+    if (num_chars > sv.size)
+    {
+        // TODO: Do something...
+        return sv;
+    }
+
+    sv.data += num_chars;
+
+    return sv;
+}
+
+StringView cutils_sv_chop_right(StringView sv, size_t num_chars)
+{
+    if (num_chars > sv.size)
+    {
+        // TODO: Do something...
+        return sv;
+    }
+
+    sv.size -= num_chars;
 
     return sv;
 }

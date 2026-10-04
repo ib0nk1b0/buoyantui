@@ -150,15 +150,164 @@ int main(void)
 
     // NOTE: init bui
     Bui* bui = bui_init();
-    // TODO: this setup stuff needs to be available in platform-independant layer
-    // Bui_Color_Scheme default_scheme = bui->color_scheme;
-    // Bui_Color_Scheme blue_scheme = (Bui_Color_Scheme){
-    //     .font       = { 0.90f, 0.90f, 0.95f, 1.0f },
-    //     .background = { 0.10f, 0.12f, 0.22f, 1.0f },
-    //     .button     = { 0.20f, 0.25f, 0.85f, 1.0f },
-    //     .hovered    = { 0.25f, 0.60f, 0.25f, 1.0f },
-    // };
 
+    Renderer2D_Data renderer = renderer2D_init(arena);
+
+    //
+    // Load level file
+    //
+
+    char* tileset = NULL;
+    int map_width = 0;
+    int map_height = 0;
+    int tile_size = 0;
+    int** tiles = NULL;
+    StringView sv = sv_read_entire_file(arena, "resources/levels/grass-water.level");
+
+    //
+    // NOTE: doing it fixed order to be lazy
+    // TODO: improve this in future but works for now
+    //
+    
+    //
+    // tileset
+    //
+
+    sv_chop_by_delim(&sv, ':');
+    if (sv.size > 0)
+    {
+        StringView full_line = sv_chop_line(&sv);
+        StringView line = sv_trim(sv_chop_by_delim(&full_line, '#'));
+        StringView lhs = sv_trim(sv_chop_by_delim(&line, '='));
+        line = sv_trim(line);
+        tileset = ArenaPushArray(arena, char, line.size + 1);
+        memcpy(tileset, line.data, line.size);
+        printf("tileset = %s\n", tileset);
+    }
+
+    // 
+    // map_width
+    //
+    
+    sv_chop_by_delim(&sv, ':');
+    if (sv.size > 0)
+    {
+        StringView full_line = sv_chop_line(&sv);
+        StringView line = sv_trim(sv_chop_by_delim(&full_line, '#'));
+        StringView lhs = sv_trim(sv_chop_by_delim(&line, '='));
+        line = sv_trim(line);
+        map_width = atoi(line.data); // NOTE: This is potentially bad?
+        printf("map_width = %d\n", map_width);
+    }
+
+    //
+    // map_height
+    //
+
+    sv_chop_by_delim(&sv, ':');
+    if (sv.size > 0)
+    {
+        StringView full_line = sv_chop_line(&sv);
+        StringView line = sv_trim(sv_chop_by_delim(&full_line, '#'));
+        StringView lhs = sv_trim(sv_chop_by_delim(&line, '='));
+        line = sv_trim(line);
+        map_height = atoi(line.data); // NOTE: This is potentially bad?
+        printf("map_height = %d\n", map_height);
+    }
+
+    //
+    // tile_size
+    //
+
+    sv_chop_by_delim(&sv, ':');
+    if (sv.size > 0)
+    {
+        StringView full_line = sv_chop_line(&sv);
+        StringView line = sv_trim(sv_chop_by_delim(&full_line, '#'));
+        StringView lhs = sv_trim(sv_chop_by_delim(&line, '='));
+        line = sv_trim(line);
+        tile_size = atoi(line.data); // NOTE: This is potentially bad?
+        printf("tile_size = %d\n", tile_size);
+    }
+
+    //
+    // tiles
+    //
+
+    tiles = ArenaPushArray(arena, int*, map_height);
+    for (int i = 0; i < map_height; i++)
+    {
+        tiles[i] = ArenaPushArray(arena, int, map_width);
+    }
+
+    int x = 0;
+    int y = 0;
+    sv_chop_by_delim(&sv, ':');
+    if (sv.size > 0)
+    {
+        StringView full_line = sv_chop_line(&sv);
+        StringView line = sv_trim(sv_chop_by_delim(&full_line, '#'));
+        StringView lhs = sv_trim(sv_chop_by_delim(&line, '='));
+        line = sv_trim(line);
+        if (line.data[0] == '{')
+        {
+            StringView rest = sv_chop_left(line, 1);
+            if (rest.size > 0)
+            {
+                line = sv_trim(sv_chop_by_delim(&rest, '#'));
+                while (line.size > 0)
+                {
+                    StringView s = sv_trim(sv_chop_by_delim(&line, ','));
+                    tiles[y][x] = atoi(s.data); // NOTE: This is potentially bad?
+                    if (x < map_width - 1)
+                    {
+                        x++;
+                    }
+                    else if (y < map_height - 1)
+                    {
+                        x = 0;
+                        y++;
+                    }
+                }
+            }
+            StringView block = sv_chop_by_delim(&sv, '}');
+            while (block.size > 0)
+            {
+                full_line = sv_chop_line(&block);
+                line = sv_trim(sv_chop_by_delim(&full_line, '#'));
+                while (line.size > 0)
+                {
+                    StringView s = sv_trim(sv_chop_by_delim(&line, ','));
+                    tiles[y][x] = atoi(s.data); // NOTE: This is potentially bad?
+                    if (x < map_width - 1)
+                    {
+                        x++;
+                    }
+                    else if (y < map_height - 1)
+                    {
+                        x = 0;
+                        y++;
+                    }
+                }
+            }
+        }
+
+        if (x < map_width - 1 || y < map_height - 1)
+        {
+            printf("not enough tiles supplied\n");
+        }
+    }
+
+    Buoyantui* buoyantui = ArenaPushStruct(arena, Buoyantui);
+    buoyantui->arena = arena;
+    buoyantui->bui = bui;
+    buoyantui->renderer = &renderer;
+    buoyantui->tilemap = texture_create_from_file(tileset); // What happens if error
+    buoyantui->map_width = map_width;
+    buoyantui->map_height = map_height;
+    buoyantui->tile_size = tile_size;
+    buoyantui->tiles = tiles;
+    
     while(!glfwWindowShouldClose(g_Window))
     {
         glfwPollEvents();
@@ -170,7 +319,7 @@ int main(void)
 
         float time = (float)glfwGetTime();
 
-        buoyantui_update(arena, bui, (float)g_Width, (float)g_Height);
+        buoyantui_update(buoyantui, (float)g_Width, (float)g_Height);
 
         glfwSwapBuffers(g_Window);
     }

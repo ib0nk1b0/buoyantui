@@ -62,9 +62,12 @@ internal Renderer2D_Data renderer2D_init(Arena* arena);
 internal void renderer2D_begin_scene(Renderer2D_Data* data, const glm::mat4& camera);
 internal void renderer2D_end_scene(Renderer2D_Data* data);
 
+internal void renderer2D_start_batch(Renderer2D_Data* data);
+internal void renderer2D_flush(Renderer2D_Data* data);
+
 internal void renderer2D_draw_quad(Renderer2D_Data* data, const glm::mat4& transform, const glm::vec4& color);
 internal void renderer2D_draw_textured_quad(Renderer2D_Data* data, Texture2D texture, const glm::mat4& transform, const glm::vec4& color);
-internal void renderer2D_draw_textured_qaud_uvs(Renderer2D_Data* data, Texture2D texture, const glm::mat4& transform, const glm::vec4& color, const glm::vec2* uvs); // TODO: look at this
+internal void renderer2D_draw_textured_quad_uvs(Renderer2D_Data* data, Texture2D texture, const glm::mat4& transform, const glm::vec4& color, const glm::vec2* uvs); // TODO: look at this
 
 internal void renderer2D_draw_rect(Renderer2D_Data* data, const glm::mat4& transform, const glm::vec4& color);
 

@@ -126,6 +126,20 @@ internal void renderer2D_begin_scene(Renderer2D_Data* data, const glm::mat4& cam
 
     shader_bind(&data->LineShader);
     shader_upload_uniform_mat4(&data->LineShader, "u_ViewProjection", camera);
+
+    renderer2D_start_batch(data);
+}
+
+internal void renderer2D_start_batch(Renderer2D_Data* data)
+{
+    data->QuadVertexPtr = data->QuadVertexBase;
+    data->QuadIndexCount = 0;
+
+    data->TextVertexPtr = data->TextVertexBase;
+    data->TextIndexCount = 0;
+
+    data->LineVertexPtr = data->LineVertexBase;
+    data->LineIndexCount = 0;
 }
 
 internal void renderer2D_flush(Renderer2D_Data* data)
@@ -175,14 +189,7 @@ internal void renderer2D_flush(Renderer2D_Data* data)
         renderer_api_draw_lines(&data->LineVertexArray, data->LineIndexCount);
     }
 
-    data->QuadVertexPtr = data->QuadVertexBase;
-    data->QuadIndexCount = 0;
-
-    data->TextVertexPtr = data->TextVertexBase;
-    data->TextIndexCount = 0;
-
-    data->LineVertexPtr = data->LineVertexBase;
-    data->LineIndexCount = 0;
+    renderer2D_start_batch(data);
 }
 
 internal void renderer2D_end_scene(Renderer2D_Data* data)
@@ -205,10 +212,10 @@ internal void renderer2D_draw_textured_quad(Renderer2D_Data* data, Texture2D tex
         { 0.0f, 1.0f }
     };
 
-    renderer2D_draw_textured_qaud_uvs(data, texture, transform, color, quadTextureCoords);
+    renderer2D_draw_textured_quad_uvs(data, texture, transform, color, quadTextureCoords);
 }
 
-internal void renderer2D_draw_textured_qaud_uvs(Renderer2D_Data* data, Texture2D texture, const glm::mat4& transform, const glm::vec4& color, const glm::vec2* uvs)
+internal void renderer2D_draw_textured_quad_uvs(Renderer2D_Data* data, Texture2D texture, const glm::mat4& transform, const glm::vec4& color, const glm::vec2* uvs)
 {
     // TODO: test for end of batch and then flush and start again
     if (data->QuadIndexCount >= data->MaxIndices)
@@ -250,7 +257,7 @@ internal void renderer2D_draw_textured_qaud_uvs(Renderer2D_Data* data, Texture2D
 
 internal void renderer2D_draw_rect(Renderer2D_Data* data, const glm::mat4& transform, const glm::vec4& color)
 {
-    if (data->LineIndexCount + 8 >= data->MaxIndices)
+    if (data->LineIndexCount + 8 >= data->MaxVertices)
     {
         renderer2D_flush(data);
     }
@@ -277,8 +284,6 @@ internal void renderer2D_draw_string(Renderer2D_Data* data, Texture2D font, cons
 
 internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font, const char* string, size_t string_size, const glm::mat4& transform, const glm::vec4& color)
 {
-    // TODO: flushing
-    // TODO: use different batch pool for strings
     if (data->TextIndexCount + (string_size * 6) >= data->MaxIndices)
     {
         renderer2D_flush(data);
@@ -366,7 +371,7 @@ internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font
 
 internal void renderer2D_draw_line(Renderer2D_Data* data, const glm::vec2& p0, const glm::vec2& p1, const glm::vec4& color)
 {
-    if (data->LineIndexCount + 2 >= data->MaxIndices)
+    if (data->LineIndexCount + 2 >= data->MaxVertices)
     {
         renderer2D_flush(data);
     }
