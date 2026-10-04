@@ -169,8 +169,10 @@ internal void render_tile_map(Buoyantui* buoyantui)
     }
 }
 
-internal void buoyantui_update(Buoyantui* buoyantui, float width, float height)
+internal void buoyantui_update(Buoyantui* buoyantui, float width, float height, float dt)
 {
+    static glm::vec3 position = {0.0f, 0.0f, 0.3f };
+
     glm::mat4 camera, view, projection, viewProjection;
 
     camera = glm::mat4(1.0f);
@@ -183,6 +185,28 @@ internal void buoyantui_update(Buoyantui* buoyantui, float width, float height)
     renderer2D_begin_scene(buoyantui->renderer, viewProjection);
 
     render_tile_map(buoyantui);
+
+    float speed = 5.0f;
+    if (platform_input_is_key_down(BUI_KEY_W))
+    {
+        position.y += speed * dt;
+    }
+    if (platform_input_is_key_down(BUI_KEY_S))
+    {
+        position.y -= speed * dt;
+    }
+    if (platform_input_is_key_down(BUI_KEY_D))
+    {
+        position.x += speed * dt;
+    }
+    if (platform_input_is_key_down(BUI_KEY_A))
+    {
+        position.x -= speed * dt;
+    }
+
+    glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
+
+    renderer2D_draw_quad(buoyantui->renderer, transform, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
     renderer2D_end_scene(buoyantui->renderer);
 

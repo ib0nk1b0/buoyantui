@@ -47,7 +47,126 @@ internal int bui_key_to_glfw(Bui_Key key)
 {
     switch(key)
     {
-        case BUI_KEY_W: return GLFW_KEY_W;
+        case BUI_KEY_SPACE:         return GLFW_KEY_SPACE;
+        case BUI_KEY_APOSTROPHE:    return GLFW_KEY_APOSTROPHE;
+        case BUI_KEY_COMMA:         return GLFW_KEY_COMMA;
+        case BUI_KEY_MINUS:         return GLFW_KEY_MINUS;
+        case BUI_KEY_PERIOD:        return GLFW_KEY_PERIOD;
+        case BUI_KEY_SLASH:         return GLFW_KEY_SLASH;
+        case BUI_KEY_0:             return GLFW_KEY_0;
+        case BUI_KEY_1:             return GLFW_KEY_1;
+        case BUI_KEY_2:             return GLFW_KEY_2;
+        case BUI_KEY_3:             return GLFW_KEY_3;
+        case BUI_KEY_4:             return GLFW_KEY_4;
+        case BUI_KEY_5:             return GLFW_KEY_5;
+        case BUI_KEY_6:             return GLFW_KEY_6;
+        case BUI_KEY_7:             return GLFW_KEY_7;
+        case BUI_KEY_8:             return GLFW_KEY_8;
+        case BUI_KEY_9:             return GLFW_KEY_9;
+        case BUI_KEY_SEMICOLON:     return GLFW_KEY_SEMICOLON;
+        case BUI_KEY_EQUAL:         return GLFW_KEY_EQUAL;
+        case BUI_KEY_A:             return GLFW_KEY_A;
+        case BUI_KEY_B:             return GLFW_KEY_B;
+        case BUI_KEY_C:             return GLFW_KEY_C;
+        case BUI_KEY_D:             return GLFW_KEY_D;
+        case BUI_KEY_E:             return GLFW_KEY_E;
+        case BUI_KEY_F:             return GLFW_KEY_F;
+        case BUI_KEY_G:             return GLFW_KEY_G;
+        case BUI_KEY_H:             return GLFW_KEY_H;
+        case BUI_KEY_I:             return GLFW_KEY_I;
+        case BUI_KEY_J:             return GLFW_KEY_J;
+        case BUI_KEY_K:             return GLFW_KEY_K;
+        case BUI_KEY_L:             return GLFW_KEY_L;
+        case BUI_KEY_M:             return GLFW_KEY_M;
+        case BUI_KEY_N:             return GLFW_KEY_N;
+        case BUI_KEY_O:             return GLFW_KEY_O;
+        case BUI_KEY_P:             return GLFW_KEY_P;
+        case BUI_KEY_Q:             return GLFW_KEY_Q;
+        case BUI_KEY_R:             return GLFW_KEY_R;
+        case BUI_KEY_S:             return GLFW_KEY_S;
+        case BUI_KEY_T:             return GLFW_KEY_T;
+        case BUI_KEY_U:             return GLFW_KEY_U;
+        case BUI_KEY_V:             return GLFW_KEY_V;
+        case BUI_KEY_W:             return GLFW_KEY_W;
+        case BUI_KEY_X:             return GLFW_KEY_X;
+        case BUI_KEY_Y:             return GLFW_KEY_Y;
+        case BUI_KEY_Z:             return GLFW_KEY_Z;
+        case BUI_KEY_LEFT_BRACKET:  return GLFW_KEY_LEFT_BRACKET;
+        case BUI_KEY_BACKSLASH:     return GLFW_KEY_BACKSLASH;
+        case BUI_KEY_RIGHT_BRACKET: return GLFW_KEY_RIGHT_BRACKET;
+        case BUI_KEY_GRAVE_ACCENT:  return GLFW_KEY_GRAVE_ACCENT;
+        case BUI_KEY_WORLD_1:       return GLFW_KEY_WORLD_1;
+        case BUI_KEY_WORLD_2:       return GLFW_KEY_WORLD_2;
+        case BUI_KEY_ESCAPE:        return GLFW_KEY_ESCAPE;
+        case BUI_KEY_ENTER:         return GLFW_KEY_ENTER;
+        case BUI_KEY_TAB:           return GLFW_KEY_TAB;
+        case BUI_KEY_BACKSPACE:     return GLFW_KEY_BACKSPACE;
+        case BUI_KEY_INSERT:        return GLFW_KEY_INSERT;
+        case BUI_KEY_DELETE:        return GLFW_KEY_DELETE;
+        case BUI_KEY_RIGHT:         return GLFW_KEY_RIGHT;
+        case BUI_KEY_LEFT:          return GLFW_KEY_LEFT;
+        case BUI_KEY_DOWN:          return GLFW_KEY_DOWN;
+        case BUI_KEY_UP:            return GLFW_KEY_UP;
+        case BUI_KEY_PAGE_UP:       return GLFW_KEY_PAGE_UP;
+        case BUI_KEY_PAGE_DOWN:     return GLFW_KEY_PAGE_DOWN;
+        case BUI_KEY_HOME:          return GLFW_KEY_HOME;
+        case BUI_KEY_END:           return GLFW_KEY_END;
+        case BUI_KEY_CAPS_LOCK:     return GLFW_KEY_CAPS_LOCK;
+        case BUI_KEY_SCROLL_LOCK:   return GLFW_KEY_SCROLL_LOCK;
+        case BUI_KEY_NUM_LOCK:      return GLFW_KEY_NUM_LOCK;
+        case BUI_KEY_PRINT_SCREEN:  return GLFW_KEY_PRINT_SCREEN;
+        case BUI_KEY_PAUSE:         return GLFW_KEY_PAUSE;
+        case BUI_KEY_F1:            return GLFW_KEY_F1;
+        case BUI_KEY_F2:            return GLFW_KEY_F2;
+        case BUI_KEY_F3:            return GLFW_KEY_F3;
+        case BUI_KEY_F4:            return GLFW_KEY_F4;
+        case BUI_KEY_F5:            return GLFW_KEY_F5;
+        case BUI_KEY_F6:            return GLFW_KEY_F6;
+        case BUI_KEY_F7:            return GLFW_KEY_F7;
+        case BUI_KEY_F8:            return GLFW_KEY_F8;
+        case BUI_KEY_F9:            return GLFW_KEY_F9;
+        case BUI_KEY_F10:           return GLFW_KEY_F10;
+        case BUI_KEY_F11:           return GLFW_KEY_F11;
+        case BUI_KEY_F12:           return GLFW_KEY_F12;
+        case BUI_KEY_F13:           return GLFW_KEY_F13;
+        case BUI_KEY_F14:           return GLFW_KEY_F14;
+        case BUI_KEY_F15:           return GLFW_KEY_F15;
+        case BUI_KEY_F16:           return GLFW_KEY_F16;
+        case BUI_KEY_F17:           return GLFW_KEY_F17;
+        case BUI_KEY_F18:           return GLFW_KEY_F18;
+        case BUI_KEY_F19:           return GLFW_KEY_F19;
+        case BUI_KEY_F20:           return GLFW_KEY_F20;
+        case BUI_KEY_F21:           return GLFW_KEY_F21;
+        case BUI_KEY_F22:           return GLFW_KEY_F22;
+        case BUI_KEY_F23:           return GLFW_KEY_F23;
+        case BUI_KEY_F24:           return GLFW_KEY_F24;
+        case BUI_KEY_F25:           return GLFW_KEY_F25;
+        case BUI_KEY_KP_0:          return GLFW_KEY_KP_0;
+        case BUI_KEY_KP_1:          return GLFW_KEY_KP_1;
+        case BUI_KEY_KP_2:          return GLFW_KEY_KP_2;
+        case BUI_KEY_KP_3:          return GLFW_KEY_KP_3;
+        case BUI_KEY_KP_4:          return GLFW_KEY_KP_4;
+        case BUI_KEY_KP_5:          return GLFW_KEY_KP_5;
+        case BUI_KEY_KP_6:          return GLFW_KEY_KP_6;
+        case BUI_KEY_KP_7:          return GLFW_KEY_KP_7;
+        case BUI_KEY_KP_8:          return GLFW_KEY_KP_8;
+        case BUI_KEY_KP_9:          return GLFW_KEY_KP_9;
+        case BUI_KEY_KP_DECIMAL:    return GLFW_KEY_KP_DECIMAL;
+        case BUI_KEY_KP_DIVIDE:     return GLFW_KEY_KP_DIVIDE;
+        case BUI_KEY_KP_MULTIPLY:   return GLFW_KEY_KP_MULTIPLY;
+        case BUI_KEY_KP_SUBTRACT:   return GLFW_KEY_KP_SUBTRACT;
+        case BUI_KEY_KP_ADD:        return GLFW_KEY_KP_ADD;
+        case BUI_KEY_KP_ENTER:      return GLFW_KEY_KP_ENTER;
+        case BUI_KEY_KP_EQUAL:      return GLFW_KEY_KP_EQUAL;
+        case BUI_KEY_LEFT_SHIFT:    return GLFW_KEY_LEFT_SHIFT;
+        case BUI_KEY_LEFT_CONTROL:  return GLFW_KEY_LEFT_CONTROL;
+        case BUI_KEY_LEFT_ALT:      return GLFW_KEY_LEFT_ALT;
+        case BUI_KEY_LEFT_SUPER:    return GLFW_KEY_LEFT_SUPER;
+        case BUI_KEY_RIGHT_SHIFT:   return GLFW_KEY_RIGHT_SHIFT;
+        case BUI_KEY_RIGHT_CONTROL: return GLFW_KEY_RIGHT_CONTROL;
+        case BUI_KEY_RIGHT_ALT:     return GLFW_KEY_RIGHT_ALT;
+        case BUI_KEY_RIGHT_SUPER:   return GLFW_KEY_RIGHT_SUPER;
+        case BUI_KEY_MENU:          return GLFW_KEY_MENU;
     }
 
     assert(false);
@@ -308,18 +427,21 @@ int main(void)
     buoyantui->tile_size = tile_size;
     buoyantui->tiles = tiles;
     
+    float last_time = (float)glfwGetTime();
     while(!glfwWindowShouldClose(g_Window))
     {
         glfwPollEvents();
+
+        float time = (float)glfwGetTime();
+        float dt = time - last_time;
+        last_time = time;
 
         // TODO: glfwSetFramebufferSizeCallback
         glfwGetFramebufferSize(g_Window, (int*)&g_Width, (int*)&g_Height);
 
         renderer_api_clear(0, 0, g_Width, g_Height);
 
-        float time = (float)glfwGetTime();
-
-        buoyantui_update(buoyantui, (float)g_Width, (float)g_Height);
+        buoyantui_update(buoyantui, (float)g_Width, (float)g_Height, dt);
 
         glfwSwapBuffers(g_Window);
     }
