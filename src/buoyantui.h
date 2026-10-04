@@ -123,13 +123,21 @@ typedef enum
     BUI_KEY_RIGHT_CONTROL,
     BUI_KEY_RIGHT_ALT,
     BUI_KEY_RIGHT_SUPER,
-    BUI_KEY_MENU
+    BUI_KEY_MENU,
+    BUI_KEY_UNKNOWN
 } Bui_Key;
 
 typedef enum
 {
     BUI_MOUSE_LEFT
 } Bui_Mouse;
+
+struct BuiKeyMods
+{
+    bool control;
+    bool shift;
+    bool alt;
+};
 
 struct Buoyantui
 {
@@ -151,6 +159,6 @@ internal bool platform_input_is_mouse_down(Bui_Mouse button);
 // NOTE: services provided to the platform layer
 internal void buoyantui_update(Buoyantui* buoyantui, float width, float height, float dt);
 // TODO: make this accept bui key only and pass the other info via a bui interface
-internal void buoyantui_key_callback(int key, int scancode, int action, int mods);
+internal void buoyantui_key_pressed_callback(Bui_Key key, BuiKeyMods mods);
 
 #endif // BUOYANTUI_H

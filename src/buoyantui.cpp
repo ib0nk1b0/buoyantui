@@ -214,14 +214,14 @@ internal void buoyantui_update(Buoyantui* buoyantui, float width, float height, 
     buoyantui_render_ui(buoyantui->bui, width, height);
 }
 
-internal void buoyantui_key_callback(int key, int scancode, int action, int mods)
+internal void buoyantui_key_pressed_callback(Bui_Key key, BuiKeyMods mods)
 {
-    if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
+    if (key == BUI_KEY_F3)
     {
         show_menu = !show_menu;
     }
 
-    if (key == GLFW_KEY_G && action == GLFW_PRESS)
+    if (mods.control && key == BUI_KEY_G)
     {
         show_grid = !show_grid;
     }
