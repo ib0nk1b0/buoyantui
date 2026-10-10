@@ -36,6 +36,7 @@
 #include "bui.cpp"
 
 #include "calculator.cpp"
+#include "console.cpp"
 
 #include "buoyantui.cpp"
 
@@ -341,16 +342,18 @@ internal void glfw_key_callback(GLFWwindow* window, int key, int scancode, int a
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 
-    if (action == GLFW_PRESS)
-    {
-        BuiKeyMods bui_mods = {0};
+    BuiKeyEvent event = {};
+    event.key = glfw_key_to_bui(key);
 
-        if (mods & GLFW_MOD_CONTROL) bui_mods.control = true;
-        if (mods & GLFW_MOD_SHIFT)   bui_mods.shift   = true;
-        if (mods & GLFW_MOD_ALT)     bui_mods.alt     = true;
+    if (mods & GLFW_MOD_CONTROL) event.mods.control = true;
+    if (mods & GLFW_MOD_SHIFT)   event.mods.shift   = true;
+    if (mods & GLFW_MOD_ALT)     event.mods.alt     = true;
 
-        buoyantui_key_pressed_callback(glfw_key_to_bui(key), bui_mods);
-    }
+    if (action == GLFW_PRESS)   event.action = BuiKeyAction::Press;
+    if (action == GLFW_REPEAT)  event.action = BuiKeyAction::Repeat;
+    if (action == GLFW_RELEASE) event.action = BuiKeyAction::Release;
+
+    buoyantui_key_event_callback(event);
 }
 
 // int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -381,11 +384,6 @@ int main(void)
     glfwSwapInterval(v_sync);
 
     // OpenGL 
-    printf("OpenGL Info\n");
-    printf("Vendor:   %s\n", glGetString(GL_VENDOR));
-    printf("Renderer: %s\n", glGetString(GL_RENDERER));
-    printf("Version:  %s\n", glGetString(GL_VERSION));
-
     // TODO: this should be setup by renderer...
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -410,6 +408,8 @@ int main(void)
 
     Renderer2D_Data renderer = renderer2D_init(arena);
 
+    console_init(arena);
+
     //
     // Load level file
     //
@@ -418,7 +418,7 @@ int main(void)
     int map_width = 0;
     int map_height = 0;
     int tile_size = 0;
-    int** tiles = NULL;
+    int* tiles = NULL;
     StringView sv = sv_read_entire_file(arena, "resources/levels/grass-water.level");
 
     //
@@ -439,7 +439,6 @@ int main(void)
         line = sv_trim(line);
         tileset = ArenaPushArray(arena, char, line.size + 1);
         memcpy(tileset, line.data, line.size);
-        printf("tileset = %s\n", tileset);
     }
 
     // 
@@ -454,7 +453,6 @@ int main(void)
         StringView lhs = sv_trim(sv_chop_by_delim(&line, '='));
         line = sv_trim(line);
         map_width = atoi(line.data); // NOTE: This is potentially bad?
-        printf("map_width = %d\n", map_width);
     }
 
     //
@@ -469,7 +467,6 @@ int main(void)
         StringView lhs = sv_trim(sv_chop_by_delim(&line, '='));
         line = sv_trim(line);
         map_height = atoi(line.data); // NOTE: This is potentially bad?
-        printf("map_height = %d\n", map_height);
     }
 
     //
@@ -484,18 +481,17 @@ int main(void)
         StringView lhs = sv_trim(sv_chop_by_delim(&line, '='));
         line = sv_trim(line);
         tile_size = atoi(line.data); // NOTE: This is potentially bad?
-        printf("tile_size = %d\n", tile_size);
     }
 
     //
     // tiles
     //
 
-    tiles = ArenaPushArray(arena, int*, map_height);
-    for (int i = 0; i < map_height; i++)
-    {
-        tiles[i] = ArenaPushArray(arena, int, map_width);
-    }
+    tiles = ArenaPushArray(arena, int, map_width * map_height);
+    // for (int i = 0; i < map_height; i++)
+    // {
+    //     tiles[i] = ArenaPushArray(arena, int, map_width);
+    // }
 
     int x = 0;
     int y = 0;
@@ -515,7 +511,7 @@ int main(void)
                 while (line.size > 0)
                 {
                     StringView s = sv_trim(sv_chop_by_delim(&line, ','));
-                    tiles[y][x] = atoi(s.data); // NOTE: This is potentially bad?
+                    tiles[y * map_width + x] = atoi(s.data); // NOTE: This is potentially bad?
                     if (x < map_width - 1)
                     {
                         x++;
@@ -535,7 +531,7 @@ int main(void)
                 while (line.size > 0)
                 {
                     StringView s = sv_trim(sv_chop_by_delim(&line, ','));
-                    tiles[y][x] = atoi(s.data); // NOTE: This is potentially bad?
+                    tiles[y * map_width + x] = atoi(s.data); // NOTE: This is potentially bad?
                     if (x < map_width - 1)
                     {
                         x++;
@@ -565,6 +561,19 @@ int main(void)
     buoyantui->tile_size = tile_size;
     buoyantui->tiles = tiles;
     
+    char vendor_buf[256];
+    sprintf(vendor_buf, "Vendor:   %s", glGetString(GL_VENDOR));
+    char renderer_buf[256];
+    sprintf(renderer_buf, "Renderer: %s", glGetString(GL_RENDERER));
+    char version_buf[256];
+    sprintf(version_buf, "Version:  %s\n", glGetString(GL_VERSION));
+
+    console_print("OpenGL Info\n");
+    console_print(vendor_buf);
+    console_print(renderer_buf);
+    console_print(version_buf);
+    console_print("Hello, World");
+    console_print("World, Hello");
     float last_time = (float)glfwGetTime();
     while(!glfwWindowShouldClose(g_Window))
     {

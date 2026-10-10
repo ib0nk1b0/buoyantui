@@ -1,6 +1,8 @@
 #include "buoyantui.h"
 #include "renderer/opengl_renderer.h"
 
+// TODO: globals
+static bool show_console = false;
 static bool show_menu = false;
 static bool show_grid = false;
 
@@ -132,7 +134,7 @@ internal void render_tile_map(Buoyantui* buoyantui)
             glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(j - buoyantui->map_width / 2, i - buoyantui->map_height / 2, 0.0f))
                 * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
-            int tile = buoyantui->tiles[i][j];
+            int tile = buoyantui->tiles[i * buoyantui->map_width + j];
             float tile_w = (float)buoyantui->tilemap.width / (float)buoyantui->tile_size;
             float tile_h = (float)buoyantui->tilemap.height / (float)buoyantui->tile_size;
 
@@ -186,22 +188,25 @@ internal void buoyantui_update(Buoyantui* buoyantui, float width, float height, 
 
     render_tile_map(buoyantui);
 
-    float speed = 5.0f;
-    if (platform_input_is_key_down(BUI_KEY_W))
+    if (!console_is_open())
     {
-        position.y += speed * dt;
-    }
-    if (platform_input_is_key_down(BUI_KEY_S))
-    {
-        position.y -= speed * dt;
-    }
-    if (platform_input_is_key_down(BUI_KEY_D))
-    {
-        position.x += speed * dt;
-    }
-    if (platform_input_is_key_down(BUI_KEY_A))
-    {
-        position.x -= speed * dt;
+        float speed = 5.0f;
+        if (platform_input_is_key_down(BUI_KEY_W))
+        {
+            position.y += speed * dt;
+        }
+        if (platform_input_is_key_down(BUI_KEY_S))
+        {
+            position.y -= speed * dt;
+        }
+        if (platform_input_is_key_down(BUI_KEY_D))
+        {
+            position.x += speed * dt;
+        }
+        if (platform_input_is_key_down(BUI_KEY_A))
+        {
+            position.x -= speed * dt;
+        }
     }
 
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
@@ -210,19 +215,60 @@ internal void buoyantui_update(Buoyantui* buoyantui, float width, float height, 
 
     renderer2D_end_scene(buoyantui->renderer);
 
+    render_console(buoyantui->renderer, buoyantui->bui->font_atlas, dt, width, height); // NOTE: hijacking bui font atlas
+
     // NOTE: rendering UI last... I had a reason...
     buoyantui_render_ui(buoyantui->bui, width, height);
 }
 
-internal void buoyantui_key_pressed_callback(Bui_Key key, BuiKeyMods mods)
+internal void buoyantui_key_event_callback(BuiKeyEvent event)
 {
-    if (key == BUI_KEY_F3)
+    if (event.action == BuiKeyAction::Press || event.action == BuiKeyAction::Repeat)
     {
-        show_menu = !show_menu;
+        if (console_is_open())
+        {
+            if (event.key >= 32 && event.key <= 255)
+            {
+                // TODO: handle shift + numbers and shift + other symbols
+                char c = (char)event.key;
+                if (c >= 'A' && c <= 'Z' && !event.mods.shift) c += ' ';
+                console_input(c);
+            }
+
+            if (event.key == BUI_KEY_BACKSPACE) console_backspace();
+
+            if (event.key == BUI_KEY_ENTER) console_enter();
+
+            if (event.key == BUI_KEY_UP) console_scroll(1);
+
+            if (event.key == BUI_KEY_DOWN) console_scroll(-1);
+        }
     }
 
-    if (mods.control && key == BUI_KEY_G)
+    if (event.action == BuiKeyAction::Press)
     {
-        show_grid = !show_grid;
+        if (event.key == BUI_KEY_F1)
+        {
+            Console_State state = CONSOLE_CLOSE;
+            if (event.mods.shift)
+            {
+                state = CONSOLE_OPEN_BIG;
+            }
+            else
+            {
+                if (openness_target == 0.0f) state = CONSOLE_OPEN;
+            }
+            open_or_close_console(state);
+        }
+
+        if (event.key == BUI_KEY_F3)
+        {
+            show_menu = !show_menu;
+        }
+
+        if (event.mods.control && event.key == BUI_KEY_G)
+        {
+            show_grid = !show_grid;
+        }
     }
 }

@@ -126,6 +126,7 @@ StringView cutils_sv_chop_left(StringView sv, size_t num_chars);
 StringView cutils_sv_chop_right(StringView sv, size_t num_chars);
 StringView cutils_sv_chop_by_delim(StringView* sv, char delim);
 StringView cutils_sv_chop_line(StringView* sv);
+bool       cutils_sv_contains(StringView sv, const char* str);
 
 char* cutils_read_entire_file(Arena* arena, const char* filepath, size_t* outSize);
 StringView cutils_sv_read_entire_file(Arena* arena, const char* filepath);
@@ -163,6 +164,7 @@ char* cutils_next_cmd_line_arg(int* argc, char*** argv);
 #define sv_chop_right cutils_sv_chop_right
 #define sv_chop_by_delim cutils_sv_chop_by_delim
 #define sv_chop_line cutils_sv_chop_line
+#define sv_contains cutils_sv_contains
 
 #endif // CUTILS_NO_PREFIX_STRING_VIEW
 
@@ -373,6 +375,20 @@ StringView cutils_sv_chop_line(StringView* sv)
     }
 
     return line;
+}
+
+bool cutils_sv_contains(StringView sv, const char* str)
+{
+    size_t str_len = strlen(str);
+
+    if (sv.size < str_len) return false;
+
+    for (uint32_t i = 0; i < str_len; i++)
+    {
+        if (sv.data[i] != str[i]) return false;
+    }
+
+    return true;
 }
 
 // FILE I/O -----------------------------------------------------------------
