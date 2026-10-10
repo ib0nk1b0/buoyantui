@@ -84,6 +84,7 @@ internal void console_enter()
 
     StringView sv = sv_from_cstr(buf);
     StringView command = sv_chop_by_delim(&sv, ' ');
+    console_print(buf);
     if (sv_contains(command, "clear"))
     {
         // TODO: not sure if I want this?
@@ -94,9 +95,26 @@ internal void console_enter()
         // else
         console_data.num_lines = 0;
     }
+    else if (sv_contains(command, "add"))
+    {
+        StringView left = sv_chop_by_delim(&sv, ' ');
+        StringView right = sv_chop_by_delim(&sv, ' ');
+        if (left.size == 0 || right.size == 0 || sv.size > 0)
+        {
+            console_print("add takes exactly two arguments");
+        }
+        else
+        {
+            int a = atoi(left.data); // NOTE: potentially bad
+            int b = atoi(right.data); // NOTE: potentially bad
+            
+            char buf2[MAX_CONSOLE_LINE_LEN];
+            sprintf(buf2, "%d + %d = %d", a, b, a + b);
+            console_print(buf2);
+        }
+    }
     else
     {
-        console_print(buf);
         char buf2[MAX_CONSOLE_LINE_LEN];
         const char* unknown_command = "unknown command: ";
         memcpy(buf2, unknown_command, strlen(unknown_command));
