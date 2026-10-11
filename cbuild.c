@@ -1,12 +1,12 @@
 #define CBUILD_IMPLEMENTATION
 #include "cbuild.h"
 
-#define IncludeDirs "/I..\\vendor\\glm /I\"vendor\\GLFW\\include\" /I\"vendor\\glad\\include\" /I\"vendor\\stb_image\" /I\"vendor\\freetype-2.14.3\\include\""
+#define IncludeDirs "/I..\\vendor\\glm /I\"vendor\\GLFW\\include\" /I\"vendor\\glad\\include\" /I\"vendor\\stb_image\" /I\"vendor\\freetype\\include\""
 #define CommonCompilerFlags "/DGLFW_STATIC /W3 /wd4996 /Zi /MT /nologo /std:c++20"
 #define ReleaseFlags "/O2 /MT /nologo /std:c++20 /DGLFW_STATIC"
 #define Files "\"src\\windows_buoyantui.cpp\" \"vendor\\glad\\src\\gl.c\""
-#define LibPaths "/LIBPATH:\"vendor\\GLFW\\lib-vc2022\""
-#define Libs "glfw3_mt.lib user32.lib gdi32.lib shell32.lib"
+#define LibPaths "/LIBPATH:\"vendor\\GLFW\\lib-vc2022\" /LIBPATH:\"vendor\\freetype\\lib\""
+#define Libs "glfw3_mt.lib freetype.lib user32.lib gdi32.lib shell32.lib"
 
 int main(int argc, char** argv)
 {

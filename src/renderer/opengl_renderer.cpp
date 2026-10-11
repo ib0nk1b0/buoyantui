@@ -12,8 +12,9 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
     data.MaxVertices  = data.MaxQuads * data.NumVertices;
     data.MaxIndices   = data.MaxQuads * data.NumIndices;
 
-    data.QuadShader = shader_compile_from_file("src\\basic_shader.glsl");
-    data.LineShader = shader_compile_from_file("src\\line_shader.glsl");
+    data.QuadShader  = shader_compile_from_file("resources\\shaders\\basic_shader.glsl");
+    data.GlyphShader = shader_compile_from_file("resources\\shaders\\glyph_shader.glsl");
+    data.LineShader  = shader_compile_from_file("resources\\shaders\\line_shader.glsl");
 
     // NOTE: Quad
     data.QuadVertexArray  = vertex_array_create();
@@ -45,6 +46,21 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
     vertex_buffer_set_layout(&data.TextVertexBuffer, text_layout);
     vertex_array_add_vertex_buffer(&data.TextVertexArray, data.TextVertexBuffer);
 
+    // NOTE: Glyph
+    data.GlyphVertexArray  = vertex_array_create();
+    data.GlyphVertexBuffer = vertex_buffer_create_empty(data.MaxVertices * sizeof(QuadVertex));
+
+    uint32_t glyph_num_elements = 4;
+    Vertex_Buffer_Layout_Element* glyph_layout_elements = ArenaPushArray(arena, Vertex_Buffer_Layout_Element, glyph_num_elements);
+    glyph_layout_elements[0] = { .name = "a_Position", .type = VERTEX_ATTRIB_FLOAT3, .offset = offsetof(QuadVertex, pos) };
+    glyph_layout_elements[1] = { .name = "a_Color",    .type = VERTEX_ATTRIB_FLOAT4, .offset = offsetof(QuadVertex, color) };
+    glyph_layout_elements[2] = { .name = "a_TexCoord", .type = VERTEX_ATTRIB_FLOAT2, .offset = offsetof(QuadVertex, texture_coords) };
+    glyph_layout_elements[3] = { .name = "a_TexIndex", .type = VERTEX_ATTRIB_FLOAT1, .offset = offsetof(QuadVertex, texture_index) };
+
+    Vertex_Buffer_Layout glyph_layout = vertex_buffer_layout_create(glyph_layout_elements, glyph_num_elements, sizeof(QuadVertex));
+    vertex_buffer_set_layout(&data.GlyphVertexBuffer, glyph_layout);
+    vertex_array_add_vertex_buffer(&data.GlyphVertexArray, data.GlyphVertexBuffer);
+
     // NOTE: Line
     data.LineVertexArray  = vertex_array_create();
     data.LineVertexBuffer = vertex_buffer_create_empty(data.MaxVertices * sizeof(LineVertex));
@@ -75,14 +91,17 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
     ArenaPopArray(arena, uint32_t, data.MaxIndices);
 
     vertex_array_set_index_buffer(&data.QuadVertexArray, index_buffer);
+    vertex_array_set_index_buffer(&data.GlyphVertexArray, index_buffer);
     vertex_array_set_index_buffer(&data.TextVertexArray, index_buffer);
 
     data.QuadVertexBase = ArenaPushArray(arena, QuadVertex, data.MaxVertices);
     data.TextVertexBase = ArenaPushArray(arena, QuadVertex, data.MaxVertices);
+    data.GlyphVertexBase = ArenaPushArray(arena, QuadVertex, data.MaxVertices);
     data.LineVertexBase = ArenaPushArray(arena, LineVertex, data.MaxVertices);
 
     data.QuadVertexPtr = data.QuadVertexBase;
     data.TextVertexPtr = data.TextVertexBase;
+    data.GlyphVertexPtr = data.GlyphVertexBase;
     data.LineVertexPtr = data.LineVertexBase;
 
     // TODO: Clenup
@@ -96,6 +115,7 @@ internal Renderer2D_Data renderer2D_init(Arena* arena)
     strcpy(uniform_names[1], u_Textures);
 
     shader_set_uniform_cache(arena, &data.QuadShader, uniform_names, 2);
+    shader_set_uniform_cache(arena, &data.GlyphShader, uniform_names, 2);
     shader_set_uniform_cache(arena, &data.LineShader, uniform_names, 2);
 
     data.MaxTextureSlots = 32;
@@ -124,6 +144,9 @@ internal void renderer2D_begin_scene(Renderer2D_Data* data, const glm::mat4& cam
     shader_bind(&data->QuadShader);
     shader_upload_uniform_mat4(&data->QuadShader, "u_ViewProjection", camera);
 
+    shader_bind(&data->GlyphShader);
+    shader_upload_uniform_mat4(&data->GlyphShader, "u_ViewProjection", camera);
+
     shader_bind(&data->LineShader);
     shader_upload_uniform_mat4(&data->LineShader, "u_ViewProjection", camera);
 
@@ -137,6 +160,9 @@ internal void renderer2D_start_batch(Renderer2D_Data* data)
 
     data->TextVertexPtr = data->TextVertexBase;
     data->TextIndexCount = 0;
+
+    data->GlyphVertexPtr = data->GlyphVertexBase;
+    data->GlyphIndexCount = 0;
 
     data->LineVertexPtr = data->LineVertexBase;
     data->LineIndexCount = 0;
@@ -178,6 +204,23 @@ internal void renderer2D_flush(Renderer2D_Data* data)
         renderer_api_draw_elements(&data->TextVertexArray, data->TextIndexCount);
     }
 
+    if (data->GlyphIndexCount)
+    {
+        shader_bind(&data->GlyphShader);
+
+        size_t size = (uint8_t*)data->GlyphVertexPtr - (uint8_t*)data->GlyphVertexBase;
+        vertex_buffer_set_data(data->GlyphVertexBuffer, data->GlyphVertexBase, size);
+
+        for (uint32_t i = 0; i < data->TextureSlotIndex; i++)
+        {
+            texture_bind(data->TextureSlots[i], i);
+        }
+
+        shader_upload_uniform_int_array(&data->GlyphShader, "u_Textures", data->TextureSlotIndex, (int*)data->TextureSamplers);
+
+        renderer_api_draw_elements(&data->GlyphVertexArray, data->GlyphIndexCount);
+    }
+
     if (data->LineIndexCount)
     {
         shader_bind(&data->LineShader);
@@ -217,8 +260,7 @@ internal void renderer2D_draw_textured_quad(Renderer2D_Data* data, Texture2D tex
 
 internal void renderer2D_draw_textured_quad_uvs(Renderer2D_Data* data, Texture2D texture, const glm::mat4& transform, const glm::vec4& color, const glm::vec2* uvs)
 {
-    // TODO: test for end of batch and then flush and start again
-    if (data->QuadIndexCount >= data->MaxIndices)
+    if (data->QuadIndexCount + data->NumIndices >= data->MaxIndices)
     {
         renderer2D_flush(data);
     }
@@ -241,17 +283,13 @@ internal void renderer2D_draw_textured_quad_uvs(Renderer2D_Data* data, Texture2D
 
     for (uint32_t i = 0; i < data->NumVertices; i++)
     {
-        // vec3 position;
-        // glm_mat4_mulv3(transform, (float*)data->QuadVertexPositions[i], 1.0f, position);
-        // glm_vec3_copy(position, data->QuadVertexPtr->pos);
-        // glm_vec4_copy(color, data->QuadVertexPtr->color);
-        // glm_vec2_copy((float*)uvs[i], data->QuadVertexPtr->texture_coords);
         data->QuadVertexPtr->pos = transform * data->QuadVertexPositions[i];
         data->QuadVertexPtr->color = color;
         data->QuadVertexPtr->texture_coords = uvs[i];
         data->QuadVertexPtr->texture_index = texture_index;
         data->QuadVertexPtr++;
     }
+
     data->QuadIndexCount += 6;
 }
 
@@ -265,9 +303,6 @@ internal void renderer2D_draw_rect(Renderer2D_Data* data, const glm::mat4& trans
     glm::vec3 lines[4];
     for (uint8_t i = 0; i < 4; i++)
     {
-        // vec3 position;
-        // glm_mat4_mulv3(transform, (float*)data->QuadVertexPositions[i], 1.0f, position);
-        // glm_vec3_copy(position, lines[i]);
         lines[i] = transform * data->QuadVertexPositions[i];
     }
 
@@ -284,7 +319,7 @@ internal void renderer2D_draw_string(Renderer2D_Data* data, Texture2D font, cons
 
 internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font, const char* string, size_t string_size, const glm::mat4& transform, const glm::vec4& color)
 {
-    if (data->TextIndexCount + (string_size * 6) >= data->MaxIndices)
+    if (data->TextIndexCount + (string_size * data->NumIndices) >= data->MaxIndices)
     {
         renderer2D_flush(data);
     }
@@ -342,17 +377,8 @@ internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font
             { minNormalized[0], maxNormalized[1] }
         };
 
-        // TODO: test for end of batch and then flush and start again
         for (uint32_t j = 0; j < data->NumVertices; j++)
         {
-            // vec3 position;
-            // glm_vec3_copy((float*)data->QuadVertexPositions[j], position);
-            // position[0] += x_offset;
-            // position[1] -= y_offset;
-            // glm_mat4_mulv3(transform, &position[0], 1.0f, position);
-            // glm_vec3_copy(position, data->TextVertexPtr->pos);
-            // glm_vec4_copy(color, data->TextVertexPtr->color);
-            // glm_vec2_copy((float*)fontTextureCoords[j], data->TextVertexPtr->texture_coords);
             glm::vec4 position = data->QuadVertexPositions[j];
             position.x += x_offset;
             position.y -= y_offset;
@@ -379,17 +405,57 @@ internal void renderer2D_draw_line(Renderer2D_Data* data, const glm::vec2& p0, c
     glm::vec3 p0_vec3 = { p0.x, p0.y, 0.0f };
     glm::vec3 p1_vec3 = { p1.x, p1.y, 0.0f };
 
-    // glm_vec3_copy(p0_vec3, data->LineVertexPtr->pos);
-    // glm_vec4_copy(color, data->LineVertexPtr->color);
     data->LineVertexPtr->pos = p0_vec3;
     data->LineVertexPtr->color = color;
     data->LineVertexPtr++;
 
-    // glm_vec3_copy(p1_vec3, data->LineVertexPtr->pos);
-    // glm_vec4_copy(color, data->LineVertexPtr->color);
     data->LineVertexPtr->pos = p1_vec3;
     data->LineVertexPtr->color = color;
     data->LineVertexPtr++;
 
     data->LineIndexCount += 2;
+}
+
+internal void renderer2D_draw_freetype_glyph(Renderer2D_Data* data, Texture2D glyph, const glm::mat4& transform, const glm::vec3& color)
+{
+    if (data->GlyphIndexCount + data->NumIndices >= data->MaxIndices)
+    {
+        renderer2D_flush(data);
+    }
+
+    glm::vec2 uvs[4] = 
+    {
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+        { 1.0f, 1.0f },
+        { 0.0f, 1.0f }
+    };
+
+    float texture_index = -1.0f;
+    for (uint32_t i = 0; i < data->TextureSlotIndex; i++)
+    {
+        if (data->TextureSlots[i].renderer_id == glyph.renderer_id)
+        {
+            texture_index = (float)i;
+            break;
+        }
+    }
+
+    if (texture_index == -1.0f && data->TextureSlotIndex < data->MaxTextureSlots)
+    {
+        texture_index = (float)data->TextureSlotIndex;
+        data->TextureSlots[data->TextureSlotIndex++] = glyph;
+    }
+
+    for (uint32_t i = 0; i < data->NumVertices; i++)
+    {
+        data->GlyphVertexPtr->pos = transform * data->QuadVertexPositions[i];
+        data->GlyphVertexPtr->color = glm::vec4(color, 1.0f);
+        data->GlyphVertexPtr->texture_coords = uvs[i];
+        data->GlyphVertexPtr->texture_index = texture_index;
+        data->GlyphVertexPtr++;
+    }
+
+    data->GlyphIndexCount += 6;
+
 }

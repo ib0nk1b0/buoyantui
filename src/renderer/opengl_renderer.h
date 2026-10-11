@@ -4,19 +4,19 @@
 #include "opengl_buffer.h"
 #include "opengl_shader.h"
 
-typedef struct
+struct QuadVertex
 {
     glm::vec3  pos;
     glm::vec4  color;
     glm::vec2  texture_coords;
     float texture_index;
-} QuadVertex;
+};
 
-typedef struct
+struct LineVertex
 {
     glm::vec3 pos;
     glm::vec4 color;
-} LineVertex;
+};
 
 // TODO: ogranise by size
 typedef struct
@@ -28,6 +28,7 @@ typedef struct
     uint32_t      MaxIndices;
 
     Shader        QuadShader;
+    Shader        GlyphShader;
     Shader        LineShader;
 
     uint32_t      QuadIndexCount;
@@ -41,6 +42,12 @@ typedef struct
     Vertex_Buffer TextVertexBuffer;
     QuadVertex*   TextVertexBase;
     QuadVertex*   TextVertexPtr;
+
+    uint32_t      GlyphIndexCount;
+    Vertex_Array  GlyphVertexArray;
+    Vertex_Buffer GlyphVertexBuffer;
+    QuadVertex*   GlyphVertexBase;
+    QuadVertex*   GlyphVertexPtr;
 
     uint32_t      LineIndexCount;
     Vertex_Array  LineVertexArray;
@@ -75,5 +82,7 @@ internal void renderer2D_draw_string(Renderer2D_Data* data, Texture2D font, cons
 internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Texture2D font, const char* string, size_t string_size, const glm::mat4& transform, const glm::vec4& color);
 
 internal void renderer2D_draw_line(Renderer2D_Data* data, const glm::vec2& p0, const glm::vec2& p1, const glm::vec4& color);
+
+internal void renderer2D_draw_freetype_glyph(Renderer2D_Data* data, Texture2D glyph, const glm::mat4& transform, const glm::vec3& color);
 
 #endif // OPENGL_RENDERER_H

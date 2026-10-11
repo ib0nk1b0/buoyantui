@@ -17,6 +17,10 @@
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_MODULE_H
+
 // My includes
 #include "utils.h"
 
@@ -355,7 +359,9 @@ int main(void)
 {
     Arena* arena = arena_create(Megabytes(64));
 
+    //
     // GLFW 
+    //
     if (!glfwInit())
     {
         return -1;
@@ -375,13 +381,100 @@ int main(void)
     gladLoadGL(glfwGetProcAddress);
 
     bool v_sync = true;
-    glfwSwapInterval(1);
+    glfwSwapInterval(v_sync);
 
+    //
     // OpenGL 
+    //
     // TODO: this should be setup by renderer...
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    //
+    // FreeType
+    //
+
+    FT_Library library;
+    FT_Face    face;
+
+    FT_Error error = FT_Init_FreeType(&library);
+    if (error)
+    {
+        // ...
+        printf("Freetype error\n");
+    }
+
+    error = FT_New_Face(library, "resources\\fonts\\ttf\\Inconsolata-Regular.ttf", 0, &face);
+
+    if (error == FT_Err_Unknown_File_Format || error)
+    {
+        // ...
+        printf("Freetype error\n");
+    }
+
+    error = FT_Set_Pixel_Sizes(face, 0, 48);
+    if (error)
+    {
+        printf("Freetype error\n");
+    }
+    //
+    // error = FT_Load_Char(face, 'A', FT_LOAD_RENDER);
+    // if (error)
+    // {
+    //     printf("Freetype error\n");
+    // }
+
+    FT_Int32 flags = FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP;
+    error = FT_Load_Glyph(face, FT_Get_Char_Index(face, 'A'), flags);
+    if (error)
+    {
+        printf("Freetype error %d\n", __LINE__);
+    }
+
+    // FT_UInt spread = 4;
+    // FT_Error propertyError = FT_Property_Set(library, "sdf", "spread", &spread);
+    // if (propertyError)
+    // {
+    //     printf("propertyError\n");
+    // }
+    error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_SDF);
+    if (error)
+    {
+        printf("Freetype error %d\n", __LINE__);
+    }
+
+    // Create Glyph Texture
+    Texture2D A_glyph = {};
+    FT_Bitmap& bitmap = face->glyph->bitmap;
+
+    glGenTextures(1, &A_glyph.renderer_id);
+    glBindTexture(GL_TEXTURE_2D, A_glyph.renderer_id);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    unsigned char* pixels = ArenaPushArray(arena, unsigned char, bitmap.width * bitmap.rows);
+    for (unsigned int i = 0; i < bitmap.rows; i++)
+    {
+        const unsigned char* src = bitmap.buffer + i * bitmap.width;
+        unsigned char* dst = pixels + (bitmap.rows - 1 - i) * bitmap.width;
+        memcpy(dst, src, bitmap.width);
+    }
+    A_glyph.width = bitmap.width;
+    A_glyph.height = bitmap.rows;
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_R8,
+        A_glyph.width,
+        A_glyph.height,
+        0, GL_RED, GL_UNSIGNED_BYTE, pixels
+    );
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
     // NOTE: init bui
     Bui* bui = bui_init();
@@ -540,6 +633,7 @@ int main(void)
     buoyantui->map_height = map_height;
     buoyantui->tile_size = tile_size;
     buoyantui->tiles = tiles;
+    buoyantui->A_glyph = A_glyph; // TODO: temp
     
     char vendor_buf[256];
     sprintf(vendor_buf, "Vendor:   %s", glGetString(GL_VENDOR));
