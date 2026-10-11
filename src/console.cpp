@@ -16,8 +16,10 @@ struct ConsoleLine
 
 struct ConsoleData
 {
-    ConsoleLine* console_lines;
-    uint32_t     num_lines;
+    ConsoleLine* console_lines = nullptr;
+    uint32_t     num_lines = 0;
+    uint32_t     line_index = 0;
+    bool         has_wrapped = false;
 };
 
 static ConsoleData console_data;
@@ -29,7 +31,7 @@ typedef enum
     CONSOLE_OPEN_BIG,
 } Console_State;
 
-#define MAX_CONSOLE_LINES 32
+#define MAX_CONSOLE_LINES 256
 #define MAX_CONSOLE_LINE_LEN 256
 
 // TODO: Forward declaration
@@ -39,6 +41,7 @@ internal void console_init(Arena* arena)
 {
     console_data = {};
     console_data.console_lines = ArenaPushArray(arena, ConsoleLine, MAX_CONSOLE_LINES); // TODO: magic number
+    console_data.num_lines = MAX_CONSOLE_LINES;
     for (int i = 0; i < MAX_CONSOLE_LINES; i++)
     {
         console_data.console_lines[i].line = ArenaPushArray(arena, char, MAX_CONSOLE_LINE_LEN);
@@ -54,7 +57,10 @@ internal bool console_is_open()
 
 internal void console_scroll(int amount)
 {
-    if ((amount < 0 && scroll == 0) || (amount > 0 && scroll + amount > MAX_CONSOLE_LINES)) return;
+    if (console_data.has_wrapped) if ((amount < 0 && scroll == 0) || (amount > 0 && scroll + amount > console_data.num_lines - 1)) return;
+
+    if ((amount < 0 && scroll == 0) || (amount > 0 && scroll + amount > console_data.line_index - 1)) return;
+
     scroll += amount;
 }
 
@@ -93,7 +99,8 @@ internal void console_enter()
         //     console_print("clear command takes no arguments");
         // }
         // else
-        console_data.num_lines = 0;
+        console_data.line_index = 0;
+        console_data.has_wrapped = false;
     }
     else if (sv_contains(command, "add"))
     {
@@ -120,26 +127,31 @@ internal void console_enter()
         memcpy(buf2, unknown_command, strlen(unknown_command));
         size_t size = command.size < MAX_CONSOLE_LINE_LEN - strlen(unknown_command) + 1 ? command.size : MAX_CONSOLE_LINE_LEN - strlen(unknown_command) + 1;
         memcpy(buf2 + strlen(unknown_command), command.data, size);
+        buf2[strlen(unknown_command) + command.size] = 0;
         console_print(buf2);
     }
     cursor_pos = 0;
+    scroll = 0;
 }
 
 internal void console_print(const char* text)
 {
     // TODO: circular buffer
-    if (console_data.console_lines == NULL) return; // TODO: error handling
+
+    if (console_data.console_lines == NULL) return;
 
     uint32_t text_len = (uint32_t)strlen(text);
     uint32_t amount_to_copy = text_len < MAX_CONSOLE_LINE_LEN ? text_len : MAX_CONSOLE_LINE_LEN - 1; // NOTE: - 1 for null terminator. Might not need this but will do for now
 
-    if (console_data.num_lines < MAX_CONSOLE_LINES)
+    if (console_data.line_index >= console_data.num_lines) // TODO: num_lines + MAX_CONSOLE_LINES or whatever is redundant
     {
-        char* line = console_data.console_lines[console_data.num_lines].line;
-        memcpy(line, text, amount_to_copy);
-        line[amount_to_copy] = 0;
-        console_data.num_lines++;
+        console_data.line_index = 0; // wrapping it back around
+        console_data.has_wrapped = true;
     }
+    char* line = console_data.console_lines[console_data.line_index].line;
+    memcpy(line, text, amount_to_copy);
+    line[amount_to_copy] = 0;
+    console_data.line_index++;
 }
 
 internal void console_update_openness(float dt)
@@ -229,17 +241,31 @@ internal void render_console(Renderer2D_Data* renderer, Texture2D font_atlas, fl
     int screen_w = (int)(console_scale.x + x * (screen_width / (x * 2.0f)));
     renderer_api_scissor(screen_x, screen_y, screen_w, (int)screen_height);
 
-    for (uint32_t i = 0; i < console_data.num_lines; i++)
+    // TODO: think of cleaner way to do this
+    if (!console_data.has_wrapped)
     {
-        float line_y = console_translation.y - console_scale.y / 2 + (console_data.num_lines - i - scroll) * 0.5f;
-        glm::vec3 line_translation = { -x + 0.5f, line_y, 0.0f };
-        glm::mat4 line_transform = glm::translate(glm::mat4(1.0f), line_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-        renderer2D_draw_string(renderer, font_atlas, console_data.console_lines[i].line, line_transform, glm::vec4(1.0f));
+        for (uint32_t i = 0; i < console_data.line_index; i++)
+        {
+            float line_y = console_translation.y - console_scale.y / 2 + (console_data.line_index - i - scroll) * 0.5f;
+            glm::vec3 line_translation = { -x + 0.5f, line_y, 0.0f };
+            glm::mat4 line_transform = glm::translate(glm::mat4(1.0f), line_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+            renderer2D_draw_string(renderer, font_atlas, console_data.console_lines[i].line, line_transform, glm::vec4(1.0f));
+        }
+    }
+    else
+    {
+        for (uint32_t i = 0; i < console_data.num_lines; i++)
+        {
+            float line_y = console_translation.y - console_scale.y / 2 + (console_data.num_lines - i - scroll) * 0.5f;
+            glm::vec3 line_translation = { -x + 0.5f, line_y, 0.0f };
+            glm::mat4 line_transform = glm::translate(glm::mat4(1.0f), line_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+            renderer2D_draw_string(renderer, font_atlas, console_data.console_lines[(console_data.line_index + i) % console_data.num_lines].line, line_transform, glm::vec4(1.0f));
+        }
+
     }
 
     renderer2D_flush(renderer);
     renderer_api_disable_scissor();
-
 
     // 
     // Draw input
