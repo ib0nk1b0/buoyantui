@@ -78,7 +78,7 @@ internal Bui* bui_init()
     bui->arena = arena;
 
     bui->renderer = renderer2D_init(arena);
-    bui->font_atlas = texture_create_from_file("resources\\fonts\\charmap-oldschool_white.png");
+    bui->font_atlas = texture_create_from_file("resources\\fonts\\bitmap\\charmap-oldschool_white.png");
 
     bui->color_scheme = {
         .font              = glm::vec4(0.90f, 0.90f, 0.95f, 1.0f),

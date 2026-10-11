@@ -10,19 +10,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// #define CGLM_IMPLEMENTATION
-// #define CGLM_ALL_UNALIGNED
-// #include <cglm/cglm.h>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
-
-// #include <ft2build.h>
-// #include FT_FREETYPE_H  
 
 // My includes
 #include "utils.h"
@@ -173,6 +166,7 @@ internal Bui_Key glfw_key_to_bui(int key)
     assert(false);
     return BUI_KEY_UNKNOWN;
 }
+
 internal int bui_key_to_glfw(Bui_Key key)
 {
     switch(key)
@@ -381,27 +375,13 @@ int main(void)
     gladLoadGL(glfwGetProcAddress);
 
     bool v_sync = true;
-    glfwSwapInterval(v_sync);
+    glfwSwapInterval(1);
 
     // OpenGL 
     // TODO: this should be setup by renderer...
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // FT_Library ft;
-    // if (FT_Init_FreeType(&ft))
-    // {
-    //     printf("Could not init freetype\n");
-    //     assert(false);
-    // }
-    //
-    // FT_Face face;
-    // if (FT_New_Face(ft, "resources/fonts/opensans/OpenSans-Regular.ttf", 0, &face))
-    // {
-    //     printf("Failed to load font\n");
-    //     assert(false);
-    // }
 
     // NOTE: init bui
     Bui* bui = bui_init();
