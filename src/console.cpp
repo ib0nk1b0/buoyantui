@@ -166,6 +166,10 @@ internal void console_enter()
             console_print(buf2);
         }
     }
+    else if (sv_contains(command, "quit"))
+    {
+        game_should_quit = true;
+    }
     else
     {
         char buf2[MAX_CONSOLE_LINE_LEN];

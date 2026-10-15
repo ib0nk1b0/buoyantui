@@ -25,11 +25,9 @@
 #include <msdf-atlas-gen.h>
 
 
-// TODO: move these 
-
-
 // My includes
 #include "utils.h"
+global bool game_should_quit = false;
 
 #include "renderer/opengl_buffer.cpp"
 #include "renderer/opengl_shader.cpp"
@@ -571,7 +569,7 @@ int main(void)
     console_print("Hello, World");
     console_print("World, Hello");
     float last_time = (float)glfwGetTime();
-    while(!glfwWindowShouldClose(g_Window))
+    while(!game_should_quit && !glfwWindowShouldClose(g_Window))
     {
         glfwPollEvents();
 
