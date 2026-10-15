@@ -17,9 +17,16 @@
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_MODULE_H
+// #include <ft2build.h>
+// #include FT_FREETYPE_H
+// #include FT_MODULE_H
+
+#undef INFINITE
+#include <msdf-atlas-gen.h>
+
+
+// TODO: move these 
+
 
 // My includes
 #include "utils.h"
@@ -27,6 +34,7 @@
 #include "renderer/opengl_buffer.cpp"
 #include "renderer/opengl_shader.cpp"
 #include "renderer/opengl_texture.cpp"
+#include "renderer/opengl_font.cpp"
 #include "renderer/opengl_renderer_api.cpp"
 #include "renderer/opengl_renderer.cpp"
 
@@ -392,96 +400,18 @@ int main(void)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //
-    // FreeType
+    // msdf-gen-atlas
     //
 
-    FT_Library library;
-    FT_Face    face;
-
-    FT_Error error = FT_Init_FreeType(&library);
-    if (error)
-    {
-        // ...
-        printf("Freetype error\n");
-    }
-
-    error = FT_New_Face(library, "resources\\fonts\\ttf\\Inconsolata-Regular.ttf", 0, &face);
-
-    if (error == FT_Err_Unknown_File_Format || error)
-    {
-        // ...
-        printf("Freetype error\n");
-    }
-
-    error = FT_Set_Pixel_Sizes(face, 0, 48);
-    if (error)
-    {
-        printf("Freetype error\n");
-    }
-    //
-    // error = FT_Load_Char(face, 'A', FT_LOAD_RENDER);
-    // if (error)
-    // {
-    //     printf("Freetype error\n");
-    // }
-
-    FT_Int32 flags = FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP;
-    error = FT_Load_Glyph(face, FT_Get_Char_Index(face, 'A'), flags);
-    if (error)
-    {
-        printf("Freetype error %d\n", __LINE__);
-    }
-
-    // FT_UInt spread = 4;
-    // FT_Error propertyError = FT_Property_Set(library, "sdf", "spread", &spread);
-    // if (propertyError)
-    // {
-    //     printf("propertyError\n");
-    // }
-    error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_SDF);
-    if (error)
-    {
-        printf("Freetype error %d\n", __LINE__);
-    }
-
-    // Create Glyph Texture
-    Texture2D A_glyph = {};
-    FT_Bitmap& bitmap = face->glyph->bitmap;
-
-    glGenTextures(1, &A_glyph.renderer_id);
-    glBindTexture(GL_TEXTURE_2D, A_glyph.renderer_id);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    unsigned char* pixels = ArenaPushArray(arena, unsigned char, bitmap.width * bitmap.rows);
-    for (unsigned int i = 0; i < bitmap.rows; i++)
-    {
-        const unsigned char* src = bitmap.buffer + i * bitmap.width;
-        unsigned char* dst = pixels + (bitmap.rows - 1 - i) * bitmap.width;
-        memcpy(dst, src, bitmap.width);
-    }
-    A_glyph.width = bitmap.width;
-    A_glyph.height = bitmap.rows;
-    glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_R8,
-        A_glyph.width,
-        A_glyph.height,
-        0, GL_RED, GL_UNSIGNED_BYTE, pixels
-    );
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    Font inconsolata = font_load_from_file(arena, "resources\\fonts\\ttf\\Inconsolata-Bold.ttf");
 
     // NOTE: init bui
     Bui* bui = bui_init();
 
     Renderer2D_Data renderer = renderer2D_init(arena);
 
-    console_init(arena);
+    // TODO: console should be inited much early so that errors can be logged to it
+    console_init(arena, inconsolata);
 
     //
     // Load level file
@@ -628,24 +558,16 @@ int main(void)
     buoyantui->arena = arena;
     buoyantui->bui = bui;
     buoyantui->renderer = &renderer;
-    buoyantui->tilemap = texture_create_from_file(tileset); // What happens if error
+    buoyantui->tilemap = texture_create_from_file(tileset, true); // What happens if error
     buoyantui->map_width = map_width;
     buoyantui->map_height = map_height;
     buoyantui->tile_size = tile_size;
     buoyantui->tiles = tiles;
-    buoyantui->A_glyph = A_glyph; // TODO: temp
-    
-    char vendor_buf[256];
-    sprintf(vendor_buf, "Vendor:   %s", glGetString(GL_VENDOR));
-    char renderer_buf[256];
-    sprintf(renderer_buf, "Renderer: %s", glGetString(GL_RENDERER));
-    char version_buf[256];
-    sprintf(version_buf, "Version:  %s\n", glGetString(GL_VERSION));
 
     console_print("OpenGL Info\n");
-    console_print(vendor_buf);
-    console_print(renderer_buf);
-    console_print(version_buf);
+    console_print("Vendor:   %s", glGetString(GL_VENDOR));
+    console_print("Renderer: %s", glGetString(GL_RENDERER));
+    console_print("Version:  %s", glGetString(GL_VERSION));
     console_print("Hello, World");
     console_print("World, Hello");
     float last_time = (float)glfwGetTime();

@@ -163,7 +163,7 @@ struct Buoyantui
     int              map_height;
     int              tile_size;
     int*             tiles;
-    Texture2D        A_glyph;
+    Font             font;
 };
 
 // NOTE: services provided from the platform layer

@@ -78,7 +78,7 @@ internal Bui* bui_init()
     bui->arena = arena;
 
     bui->renderer = renderer2D_init(arena);
-    bui->font_atlas = texture_create_from_file("resources\\fonts\\bitmap\\charmap-oldschool_white.png");
+    bui->font_atlas = texture_create_from_file("resources\\fonts\\bitmap\\charmap-oldschool_white.png", true); // TODO: this needs updating
 
     bui->color_scheme = {
         .font              = glm::vec4(0.90f, 0.90f, 0.95f, 1.0f),
@@ -203,7 +203,8 @@ internal void bui_begin_window(Bui* bui, const char* label, int x, int y, int wi
     glm::mat4 title_transform = glm::translate(glm::mat4(1.0f), glm::vec3(pos.x - size.x * 0.5f + bui->item_padding, pos.y + (size.y - bui->item_padding - bui->font_size) * 0.5f, 0.0f))
                               * glm::scale(glm::mat4(1.0f), glm::vec3(bui->font_size, bui->font_size, 1.0f));
 
-    renderer2D_draw_string(&bui->renderer, bui->font_atlas, label, title_transform, bui->color_scheme.font);
+    // renderer2D_draw_string(&bui->renderer, bui->font_atlas, label, title_transform, bui->color_scheme.font);
+    // TODO: ^
 }
 
 internal void bui_end_window(Bui* bui)
@@ -271,7 +272,8 @@ internal void bui_text(Bui* bui, const char* text)
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos)
                    * glm::scale(glm::mat4(1.0f), size);
 
-    renderer2D_draw_string(&bui->renderer, bui->font_atlas, text, transform, bui->color_scheme.font);
+    // renderer2D_draw_string(&bui->renderer, bui->font_atlas, text, transform, bui->color_scheme.font);
+    // TODO: ^
 
     bui_advance_cursor(bui, 0.0f);
 }
@@ -333,7 +335,8 @@ internal bool bui_button(Bui* bui, const char* label)
     // label_transform = glm::translate(glm::mat4(1.0f), glm::vec3(pos.x, pos.y, pos.z + 0.0f))
     //                * glm::scale(glm::mat4(1.0f), glm::vec3(bui->font_size, bui->font_size, 1.0f));
                    
-    renderer2D_draw_string(&bui->renderer, bui->font_atlas, label, label_transform, bui->color_scheme.font);
+    // renderer2D_draw_string(&bui->renderer, bui->font_atlas, label, label_transform, bui->color_scheme.font);
+    // TODO: ^
 
     return result;
 }
@@ -388,7 +391,8 @@ internal bool bui_checkbox(Bui* bui, const char* label, bool* checked)
         glm::mat4 label_transform = glm::translate(glm::mat4(1.0f), glm::vec3(bui->cursor_x, pos.y, 0.0f)) // using cursor_x but cursor has already been advanced...
                                   * glm::scale(glm::mat4(1.0f), glm::vec3(bui->font_size, bui->font_size, 1.0f));
 
-        renderer2D_draw_string(&bui->renderer, bui->font_atlas, label, label_transform, bui->color_scheme.font);
+        // renderer2D_draw_string(&bui->renderer, bui->font_atlas, label, label_transform, bui->color_scheme.font);
+        // TODO: ^
     }
 
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos)

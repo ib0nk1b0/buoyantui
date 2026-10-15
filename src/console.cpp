@@ -1,17 +1,24 @@
 #define MAX_OPENNESS 15.0f
 
 // TODO: globals
-static float     openness = 0.0f;
-static float     openness_target = 0.0f;
-static glm::vec3 console_scale;
-static glm::vec3 console_input_scale;
-static char*     input_buffer;
-static uint32_t  cursor_pos = 0;
-static uint32_t  scroll = 0;
+global float     openness = 0.0f;
+global float     openness_target = 0.0f;
+global glm::vec3 console_scale;
+global glm::vec3 console_input_scale;
+global char*     input_buffer;
+global uint32_t  cursor_pos = 0;
+global uint32_t  scroll = 0;
+global Font      console_font; 
+global glm::vec4 background_color;
+global glm::vec4 input_background_color;
+global glm::vec4 input_text_color;
+global glm::vec4 main_text_color;
+global glm::vec4 other_text_color;
 
 struct ConsoleLine
 {
     char* line;
+    bool  is_input;
 };
 
 struct ConsoleData
@@ -35,9 +42,9 @@ typedef enum
 #define MAX_CONSOLE_LINE_LEN 256
 
 // TODO: Forward declaration
-internal void console_print(const char* text);
+internal void console_print(const char* text, ...);
 
-internal void console_init(Arena* arena)
+internal void console_init(Arena* arena, Font font)
 {
     console_data = {};
     console_data.console_lines = ArenaPushArray(arena, ConsoleLine, MAX_CONSOLE_LINES); // TODO: magic number
@@ -48,6 +55,12 @@ internal void console_init(Arena* arena)
     }
 
     input_buffer = ArenaPushArray(arena, char, MAX_CONSOLE_LINE_LEN);
+
+    console_font = font;
+    background_color = glm::vec4(17.f/255.f, 24.f/255.f, 39.f/255.f, 1.0f);
+    input_background_color = glm::vec4(27.f/255.f, 38.f/255.f, 56.f/255.f, 1.0f);
+    input_text_color = glm::vec4(255.f/255.f, 198.f/255.f, 109.f/255.f, 1.0f);
+    other_text_color = glm::vec4(169.f/255.f, 184.f/255.f, 204.f/255.f, 1.0f);
 }
 
 internal bool console_is_open()
@@ -72,6 +85,38 @@ internal void console_input(char c)
     }
 }
 
+internal float console_calculate_cursor_x()
+{
+    const auto& fontGeometry = console_font.font_data->FontGeometry;
+    const auto& metrics = fontGeometry.getMetrics();
+    double x = 0.0;
+    double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
+    const float spaceGlyphAdvance = (float)fontGeometry.getGlyph(' ')->getAdvance();
+    for (uint32_t i = 0; i < cursor_pos; i++)
+    {
+        char character = input_buffer[i];
+        
+        if (character == '\r')
+            continue;
+
+        if (character == '\n')
+            continue;
+
+
+        if (character == '\t')
+        {
+            x += 4.0f * (fsScale * spaceGlyphAdvance + console_font.kerning);
+            continue;
+        }
+
+        float advance = (float)fontGeometry.getGlyph(character)->getAdvance();
+
+        x += fsScale * advance + console_font.kerning;
+    }
+
+    return (float)x;
+}
+
 internal void console_backspace()
 {
     if (cursor_pos > 0)
@@ -91,6 +136,7 @@ internal void console_enter()
     StringView sv = sv_from_cstr(buf);
     StringView command = sv_chop_by_delim(&sv, ' ');
     console_print(buf);
+    console_data.console_lines[console_data.line_index - 1].is_input = true;
     if (sv_contains(command, "clear"))
     {
         // TODO: not sure if I want this?
@@ -123,34 +169,39 @@ internal void console_enter()
     else
     {
         char buf2[MAX_CONSOLE_LINE_LEN];
-        const char* unknown_command = "unknown command: ";
+        const char* unknown_command = "Unknown Command: ";
+
         memcpy(buf2, unknown_command, strlen(unknown_command));
-        size_t size = command.size < MAX_CONSOLE_LINE_LEN - strlen(unknown_command) + 1 ? command.size : MAX_CONSOLE_LINE_LEN - strlen(unknown_command) + 1;
+        // NOTE: there seems to be a bug if MAX_CONSOLE_LINE_LEN is less than strlen(unknown_command), however, this should never be the case so who cares
+        size_t size = command.size < MAX_CONSOLE_LINE_LEN - (strlen(unknown_command) + 1) ? command.size : MAX_CONSOLE_LINE_LEN - (strlen(unknown_command) + 1);
+
         memcpy(buf2 + strlen(unknown_command), command.data, size);
-        buf2[strlen(unknown_command) + command.size] = 0;
+        buf2[strlen(unknown_command) + size] = 0;
+
         console_print(buf2);
     }
     cursor_pos = 0;
     scroll = 0;
 }
 
-internal void console_print(const char* text)
+internal void console_print(const char* format, ...)
 {
-    // TODO: circular buffer
-
     if (console_data.console_lines == NULL) return;
 
-    uint32_t text_len = (uint32_t)strlen(text);
-    uint32_t amount_to_copy = text_len < MAX_CONSOLE_LINE_LEN ? text_len : MAX_CONSOLE_LINE_LEN - 1; // NOTE: - 1 for null terminator. Might not need this but will do for now
-
-    if (console_data.line_index >= console_data.num_lines) // TODO: num_lines + MAX_CONSOLE_LINES or whatever is redundant
+    if (console_data.line_index >= console_data.num_lines)
     {
-        console_data.line_index = 0; // wrapping it back around
+        console_data.line_index = 0;
         console_data.has_wrapped = true;
     }
+
     char* line = console_data.console_lines[console_data.line_index].line;
-    memcpy(line, text, amount_to_copy);
-    line[amount_to_copy] = 0;
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(line, MAX_CONSOLE_LINE_LEN, format, args);
+    va_end(args);
+
+    console_data.console_lines[console_data.line_index].is_input = false;
     console_data.line_index++;
 }
 
@@ -177,7 +228,7 @@ internal void console_update_openness(float dt)
     }
 }
 
-internal void render_console(Renderer2D_Data* renderer, Texture2D font_atlas, float dt, float screen_width, float screen_height)
+internal void render_console(Renderer2D_Data* renderer, float dt, float screen_width, float screen_height)
 {
     console_update_openness(dt);
 
@@ -218,13 +269,12 @@ internal void render_console(Renderer2D_Data* renderer, Texture2D font_atlas, fl
     //
     // Console Input Transform
     //
-    glm::mat4 console_input_transform = glm::translate(glm::mat4(1.0f), console_input_translation)
-        * glm::scale(glm::mat4(1.0f), console_input_scale);
+    glm::mat4 console_input_transform = glm::translate(glm::mat4(1.0f), console_input_translation) * glm::scale(glm::mat4(1.0f), console_input_scale);
 
     //
     // Draw background
     //
-    renderer2D_draw_quad(renderer, console_transform, glm::vec4(0.0f/255.f, 102.f/255.f, 102/255.f, 1.0f));
+    renderer2D_draw_quad(renderer, console_transform, background_color);
 
     //
     // Draw lines
@@ -239,17 +289,20 @@ internal void render_console(Renderer2D_Data* renderer, Texture2D font_atlas, fl
     int screen_y = int_console_bottom;
 
     int screen_w = (int)(console_scale.x + x * (screen_width / (x * 2.0f)));
-    renderer_api_scissor(screen_x, screen_y, screen_w, (int)screen_height);
+    renderer_api_scissor(screen_x, screen_y, (int)screen_width, (int)screen_height);
 
     // TODO: think of cleaner way to do this
     if (!console_data.has_wrapped)
     {
         for (uint32_t i = 0; i < console_data.line_index; i++)
         {
-            float line_y = console_translation.y - console_scale.y / 2 + (console_data.line_index - i - scroll) * 0.5f;
-            glm::vec3 line_translation = { -x + 0.5f, line_y, 0.0f };
+            float line_y = console_translation.y - console_scale.y / 2 + (console_data.line_index - i - scroll) * 0.5f - 0.15f;
+            glm::vec3 line_translation = { -x + 0.4f, line_y, 0.0f };
             glm::mat4 line_transform = glm::translate(glm::mat4(1.0f), line_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-            renderer2D_draw_string(renderer, font_atlas, console_data.console_lines[i].line, line_transform, glm::vec4(1.0f));
+
+            glm::vec4 line_color = console_data.console_lines[i].is_input ? input_text_color : other_text_color;
+
+            renderer2D_draw_string(renderer, console_font, console_data.console_lines[i].line, line_transform, line_color);
         }
     }
     else
@@ -259,9 +312,11 @@ internal void render_console(Renderer2D_Data* renderer, Texture2D font_atlas, fl
             float line_y = console_translation.y - console_scale.y / 2 + (console_data.num_lines - i - scroll) * 0.5f;
             glm::vec3 line_translation = { -x + 0.5f, line_y, 0.0f };
             glm::mat4 line_transform = glm::translate(glm::mat4(1.0f), line_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-            renderer2D_draw_string(renderer, font_atlas, console_data.console_lines[(console_data.line_index + i) % console_data.num_lines].line, line_transform, glm::vec4(1.0f));
-        }
 
+            glm::vec4 line_color = console_data.console_lines[i].is_input ? input_text_color : other_text_color;
+
+            renderer2D_draw_string(renderer, console_font, console_data.console_lines[(console_data.line_index + i) % console_data.num_lines].line, line_transform, line_color);
+        }
     }
 
     renderer2D_flush(renderer);
@@ -271,17 +326,24 @@ internal void render_console(Renderer2D_Data* renderer, Texture2D font_atlas, fl
     // Draw input
     //
 
-    renderer2D_draw_quad(renderer, console_input_transform, glm::vec4(0.0f/255.f, 77.f/255.f, 102/255.f, 1.0f));
+    renderer2D_draw_quad(renderer, console_input_transform, input_background_color);
 
-    glm::vec3 input_line_translation = { -x + 0.5f, console_input_translation.y - console_input_scale.y / 2 + 0.3f, 0.0f };
+    // TODO: lots of magic numbers going on
+    glm::vec3 input_line_translation = { -x + 0.4f, console_input_translation.y - console_input_scale.y / 2 + 0.15f, 0.0f };
+    glm::vec3 cursor_translation = { -x + 0.5f + console_calculate_cursor_x() * 0.5f, console_input_translation.y - console_input_scale.y / 2 + 0.3f, 0.0f };
+
+    if (cursor_translation.x + 0.5f >= x)
+    {
+        input_line_translation.x -= cursor_translation.x - x + 0.5f;
+        cursor_translation.x = x - 0.5f;
+    }
+
     glm::mat4 input_line_transform = glm::translate(glm::mat4(1.0f), input_line_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
-
-    renderer2D_draw_string_sized(renderer, font_atlas, input_buffer, cursor_pos, input_line_transform, glm::vec4(1.0f));
-
-    glm::vec3 cursor_translation = { -x + 0.5f + cursor_pos * 0.5f, console_input_translation.y - console_input_scale.y / 2 + 0.3f, 0.0f };
     glm::mat4 cursor_transform = glm::translate(glm::mat4(1.0f), cursor_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.2f, 0.4f, 1.0f));
 
-    renderer2D_draw_quad(renderer, cursor_transform, glm::vec4(1.0f));
+    renderer2D_draw_string_sized(renderer, console_font, input_buffer, cursor_pos, input_line_transform, input_text_color);
+
+    renderer2D_draw_quad(renderer, cursor_transform, input_text_color);
 
     renderer2D_end_scene(renderer);
 

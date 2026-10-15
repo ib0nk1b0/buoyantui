@@ -16,8 +16,8 @@ struct Texture2D
     uint32_t channels;
 };
 
-static Texture2D texture_create(uint32_t width, uint32_t height, GLenum internalFormat, GLenum dataFormat, void* data);
-static Texture2D texture_create_from_file(const char* filepath);
-static void texture_bind(Texture2D texture, uint32_t slot);
+internal Texture2D texture_create(uint32_t width, uint32_t height, GLenum internalFormat, GLenum dataFormat, void* data, bool is_pixel_art); // TODO: shouldn't be exposing GL stuff
+internal Texture2D texture_create_from_file(const char* filepath, bool is_pixel_art);
+internal void texture_bind(Texture2D texture, uint32_t slot);
 
 #endif // OPENGL_TEXTURE_H

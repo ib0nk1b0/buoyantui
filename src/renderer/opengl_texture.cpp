@@ -1,6 +1,6 @@
 #include "opengl_texture.h"
 
-static Texture2D texture_create(uint32_t width, uint32_t height, GLenum internalFormat, GLenum dataFormat, void* data)
+static Texture2D texture_create(uint32_t width, uint32_t height, GLenum internalFormat, GLenum dataFormat, void* data, bool is_pixel_art)
 {
     Texture2D texture = {
         .width = width,
@@ -10,8 +10,17 @@ static Texture2D texture_create(uint32_t width, uint32_t height, GLenum internal
     glCheckError(glCreateTextures(GL_TEXTURE_2D, 1, &texture.renderer_id));
     glCheckError(glTextureStorage2D(texture.renderer_id, 1, internalFormat, texture.width, texture.height));
 
-    glCheckError(glTextureParameteri(texture.renderer_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    glCheckError(glTextureParameteri(texture.renderer_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    // TODO: this strikes again
+    if (is_pixel_art)
+    {
+        glCheckError(glTextureParameteri(texture.renderer_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+        glCheckError(glTextureParameteri(texture.renderer_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    }
+    else
+    {
+        glCheckError(glTextureParameteri(texture.renderer_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        glCheckError(glTextureParameteri(texture.renderer_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    }
     glCheckError(glTextureParameteri(texture.renderer_id, GL_TEXTURE_WRAP_S, GL_REPEAT));
     glCheckError(glTextureParameteri(texture.renderer_id, GL_TEXTURE_WRAP_T, GL_REPEAT));
 
@@ -21,7 +30,7 @@ static Texture2D texture_create(uint32_t width, uint32_t height, GLenum internal
 }
 
 // TODO: allow for choosing filtering type
-static Texture2D texture_create_from_file(const char* filepath)
+static Texture2D texture_create_from_file(const char* filepath, bool is_pixel_art)
 {
 
     // NOTE: load data for texture
@@ -42,7 +51,7 @@ static Texture2D texture_create_from_file(const char* filepath)
         dataFormat = GL_RGB;
     }
 
-    Texture2D texture = texture_create(width, height, internalFormat, dataFormat, textureData);
+    Texture2D texture = texture_create(width, height, internalFormat, dataFormat, textureData, is_pixel_art);
 
     stbi_image_free(textureData);
 
