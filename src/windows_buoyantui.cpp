@@ -24,10 +24,12 @@
 #undef INFINITE
 #include <msdf-atlas-gen.h>
 
-
 // My includes
 #include "utils.h"
 global bool game_should_quit = false;
+
+// TODO: Forward declaration
+internal void console_print(const char* text, ...);
 
 #include "renderer/opengl_buffer.cpp"
 #include "renderer/opengl_shader.cpp"
@@ -341,10 +343,10 @@ internal void glfw_error_callback(int error, const char* desc)
 
 internal void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
+    // if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    // {
+    //     glfwSetWindowShouldClose(window, GLFW_TRUE);
+    // }
 
     BuiKeyEvent event = {};
     event.key = glfw_key_to_bui(key);
@@ -364,6 +366,8 @@ internal void glfw_key_callback(GLFWwindow* window, int key, int scancode, int a
 int main(void)
 {
     Arena* arena = arena_create(Megabytes(64));
+
+    console_init(arena);
 
     //
     // GLFW 
@@ -386,6 +390,11 @@ int main(void)
     glfwMakeContextCurrent(g_Window);
     gladLoadGL(glfwGetProcAddress);
 
+    console_print("OpenGL Info\n");
+    console_print("Vendor:   %s", glGetString(GL_VENDOR));
+    console_print("Renderer: %s", glGetString(GL_RENDERER));
+    console_print("Version:  %s", glGetString(GL_VERSION));
+
     bool v_sync = true;
     glfwSwapInterval(v_sync);
 
@@ -402,14 +411,13 @@ int main(void)
     //
 
     Font inconsolata = font_load_from_file(arena, "resources\\fonts\\ttf\\Inconsolata-Bold.ttf");
+    console_set_font(inconsolata);
 
     // NOTE: init bui
     Bui* bui = bui_init();
+    bui->font = inconsolata;
 
     Renderer2D_Data renderer = renderer2D_init(arena);
-
-    // TODO: console should be inited much early so that errors can be logged to it
-    console_init(arena, inconsolata);
 
     //
     // Load level file
@@ -548,7 +556,7 @@ int main(void)
 
         if (x < map_width - 1 || y < map_height - 1)
         {
-            printf("not enough tiles supplied\n");
+            console_print("not enough tiles supplied\n");
         }
     }
 
@@ -562,12 +570,6 @@ int main(void)
     buoyantui->tile_size = tile_size;
     buoyantui->tiles = tiles;
 
-    console_print("OpenGL Info\n");
-    console_print("Vendor:   %s", glGetString(GL_VENDOR));
-    console_print("Renderer: %s", glGetString(GL_RENDERER));
-    console_print("Version:  %s", glGetString(GL_VERSION));
-    console_print("Hello, World");
-    console_print("World, Hello");
     float last_time = (float)glfwGetTime();
     while(!game_should_quit && !glfwWindowShouldClose(g_Window))
     {

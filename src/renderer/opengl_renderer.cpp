@@ -312,12 +312,12 @@ internal void renderer2D_draw_rect(Renderer2D_Data* data, const glm::mat4& trans
     renderer2D_draw_line(data, lines[3], lines[0], color);
 }
 
-internal void renderer2D_draw_string(Renderer2D_Data* data, Font font, const char* string, const glm::mat4& transform, const glm::vec4& color)
+internal void renderer2D_draw_string(Renderer2D_Data* data, const Font& font, const char* string, const glm::mat4& transform, const glm::vec4& color)
 {
     renderer2D_draw_string_sized(data, font, string, strlen(string), transform, color);
 }
 
-internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Font font, const char* string, size_t string_size, const glm::mat4& transform, const glm::vec4& color)
+internal void renderer2D_draw_string_sized(Renderer2D_Data* data, const Font& font, const char* string, size_t string_size, const glm::mat4& transform, const glm::vec4& color)
 {
     if (data->TextIndexCount + data->NumIndices * string_size >= data->MaxIndices)
     {

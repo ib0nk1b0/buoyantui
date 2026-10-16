@@ -41,10 +41,7 @@ typedef enum
 #define MAX_CONSOLE_LINES 256
 #define MAX_CONSOLE_LINE_LEN 256
 
-// TODO: Forward declaration
-internal void console_print(const char* text, ...);
-
-internal void console_init(Arena* arena, Font font)
+internal void console_init(Arena* arena)
 {
     console_data = {};
     console_data.console_lines = ArenaPushArray(arena, ConsoleLine, MAX_CONSOLE_LINES); // TODO: magic number
@@ -56,11 +53,15 @@ internal void console_init(Arena* arena, Font font)
 
     input_buffer = ArenaPushArray(arena, char, MAX_CONSOLE_LINE_LEN);
 
-    console_font = font;
     background_color = glm::vec4(17.f/255.f, 24.f/255.f, 39.f/255.f, 1.0f);
     input_background_color = glm::vec4(27.f/255.f, 38.f/255.f, 56.f/255.f, 1.0f);
     input_text_color = glm::vec4(255.f/255.f, 198.f/255.f, 109.f/255.f, 1.0f);
     other_text_color = glm::vec4(169.f/255.f, 184.f/255.f, 204.f/255.f, 1.0f);
+}
+
+internal void console_set_font(const Font& font)
+{
+    console_font = font;
 }
 
 internal bool console_is_open()
@@ -212,11 +213,11 @@ internal void console_print(const char* format, ...)
 internal void console_update_openness(float dt)
 {
     // TODO: rate should take into account how far from target it is
-    float rate = 40.0f * dt;
+    float rate = 10.0f * dt;
 
     if (openness < openness_target)
     {
-        openness += rate;
+        openness += rate * openness_target;
         if (openness > openness_target)
         {
             openness = openness_target;
@@ -224,7 +225,7 @@ internal void console_update_openness(float dt)
     }
     else if (openness_target < openness)
     {
-        openness -= rate * 1.5f;
+        openness -= rate * MAX_OPENNESS * 0.7f;
         if (openness < 0.0f)
         {
             openness = 0.0f;

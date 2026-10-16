@@ -15,7 +15,7 @@ internal Font font_load_from_file(Arena* arena, const char* path)
 
     if (!font)
     {
-        printf("Failed to load font");
+        console_print("Failed to load font");
     }
 
     struct CharsetRange
@@ -39,7 +39,7 @@ internal Font font_load_from_file(Arena* arena, const char* path)
     double fontScale = 1.0;
     m_Data->FontGeometry = msdf_atlas::FontGeometry(&m_Data->Glyphs);
     int glyphsLoaded = m_Data->FontGeometry.loadCharset(font, fontScale, charset);
-    printf("Loaded %d glyphs from font (out of %zu)", glyphsLoaded, charset.size());
+    console_print("Loaded %d glyphs from font '%s' (out of %zu)", glyphsLoaded, path, charset.size());
 
     double emSize = 40.0;
 

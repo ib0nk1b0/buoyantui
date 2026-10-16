@@ -21,6 +21,7 @@ typedef struct
     
     Renderer2D_Data  renderer;
     Texture2D        font_atlas;
+    Font             font;
 
     Bui_Color_Scheme color_scheme;
 

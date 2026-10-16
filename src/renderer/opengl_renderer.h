@@ -78,8 +78,8 @@ internal void renderer2D_draw_textured_quad_uvs(Renderer2D_Data* data, Texture2D
 
 internal void renderer2D_draw_rect(Renderer2D_Data* data, const glm::mat4& transform, const glm::vec4& color);
 
-internal void renderer2D_draw_string(Renderer2D_Data* data, Font font, const char* string, const glm::mat4& transform, const glm::vec4& color);
-internal void renderer2D_draw_string_sized(Renderer2D_Data* data, Font font, const char* string, size_t string_size, const glm::mat4& transform, const glm::vec4& color);
+internal void renderer2D_draw_string(Renderer2D_Data* data, const Font& font, const char* string, const glm::mat4& transform, const glm::vec4& color);
+internal void renderer2D_draw_string_sized(Renderer2D_Data* data, const Font& font, const char* string, size_t string_size, const glm::mat4& transform, const glm::vec4& color);
 
 internal void renderer2D_draw_line(Renderer2D_Data* data, const glm::vec2& p0, const glm::vec2& p1, const glm::vec4& color);
 
