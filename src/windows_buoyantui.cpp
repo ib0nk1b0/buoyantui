@@ -17,9 +17,8 @@
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
 
-// #include <ft2build.h>
-// #include FT_FREETYPE_H
-// #include FT_MODULE_H
+#define MINIAUDIO_IMPLEMENTATION
+#include <miniaudio.h>
 
 #undef INFINITE
 #include <msdf-atlas-gen.h>
@@ -393,6 +392,29 @@ int main(void)
     bool v_sync = true;
     glfwSwapInterval(v_sync);
 
+    //
+    // Miniaudio
+    //
+    ma_result result;
+    ma_engine engine;
+
+    result = ma_engine_init(NULL, &engine);
+    if (result != MA_SUCCESS)
+    {
+        return -1; // TODO:
+    }
+
+    // The simplest and least flexible way to play a sound is like so:
+    // sound object is managed by miniaudio internally
+    // ma_engine_play_sound(&engine, "resources\\sounds\\synth.flac", NULL);
+    ma_sound sound;
+
+    result = ma_sound_init_from_file(&engine, "resources\\sounds\\synth.flac", 0, NULL, NULL, &sound);
+    if (result != MA_SUCCESS) {
+        return result;  // Failed to load sound.
+    }
+    ma_sound_start(&sound);
+
     Font inconsolata = font_load_from_file(arena, "resources\\fonts\\ttf\\Inconsolata-Bold.ttf");
     console_set_font(inconsolata);
 
@@ -552,6 +574,7 @@ int main(void)
     buoyantui->tile_size = tile_size;
     buoyantui->tiles = tiles;
 
+    float volume = ma_engine_get_volume(&engine);
     float last_time = (float)glfwGetTime();
     while(!game_should_quit && !glfwWindowShouldClose(g_Window))
     {
@@ -560,6 +583,12 @@ int main(void)
         float time = (float)glfwGetTime();
         float dt = time - last_time;
         last_time = time;
+
+        // if (volume > 0.0f)
+        // {
+        //     volume -= 0.25f * dt;
+        //     ma_engine_set_volume(&engine, volume);
+        // }
 
         // TODO: glfwSetFramebufferSizeCallback
         glfwGetFramebufferSize(g_Window, (int*)&g_Width, (int*)&g_Height);

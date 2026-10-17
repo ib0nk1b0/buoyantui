@@ -11,7 +11,8 @@
 /I\"vendor\\freetype\\include\" \
 /I\"vendor\\msdf-atlas-gen\\include\" \
 /I\"vendor\\msdfgen\\include\" \
-/I\"vendor\\msdfgen\\include\\msdfgen\""
+/I\"vendor\\msdfgen\\include\\msdfgen\" \
+/I\"vendor\\miniaudio\""
 
 #define Files "\
 \"src\\windows_buoyantui.cpp\" \
