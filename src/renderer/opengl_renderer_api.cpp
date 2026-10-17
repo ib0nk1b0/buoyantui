@@ -39,6 +39,17 @@ internal void renderer_api_disable_depth_test()
     glDisable(GL_DEPTH_TEST);
 }
 
+internal void renderer_api_enable_blend()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+internal void renderer_api_disable_blend()
+{
+    glDisable(GL_BLEND);
+}
+
 internal void renderer_api_enable_scissor()
 {
     glEnable(GL_SCISSOR_TEST);

@@ -213,11 +213,7 @@ internal void buoyantui_update(Buoyantui* buoyantui, float width, float height, 
 
     renderer2D_draw_quad(buoyantui->renderer, transform, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
-    // glm::mat4 glyph_transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.9f)) * glm::scale(glm::mat4(1.0f), glm::vec3(10.5f));
-    // renderer2D_draw_freetype_glyph(buoyantui->renderer, buoyantui->A_glyph, glyph_transform, glm::vec4(1.0f));
-
     glm::mat4 atlas_transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.9f)) * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
-    // renderer2D_draw_textured_quad(buoyantui->renderer, buoyantui->atlas, atlas_transform, glm::vec4(1.0f));
 
     renderer2D_end_scene(buoyantui->renderer);
 

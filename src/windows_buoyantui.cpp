@@ -393,19 +393,9 @@ int main(void)
     bool v_sync = true;
     glfwSwapInterval(v_sync);
 
-    //
-    // OpenGL 
-    //
-
-    // TODO: this should be setup by renderer...
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     Font inconsolata = font_load_from_file(arena, "resources\\fonts\\ttf\\Inconsolata-Bold.ttf");
     console_set_font(inconsolata);
 
-    // NOTE: init bui
     Bui* bui = bui_init();
     bui->font = inconsolata;
 

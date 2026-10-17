@@ -4,6 +4,9 @@
 
 internal Renderer2D_Data renderer2D_init(Arena* arena)
 {
+    renderer_api_enable_depth_test();
+    renderer_api_enable_blend();
+
     Renderer2D_Data data = {0};
 
     data.NumVertices  = 4;
