@@ -15,3 +15,5 @@ struct Font
 };
 
 internal Font font_load_from_file(Arena* arena, const char* path);
+internal float font_calculate_string_length(const Font& font, const char* string);
+internal float font_calculate_string_length_sized(const Font& font, const char* string, uint32_t size);

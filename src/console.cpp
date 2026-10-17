@@ -8,6 +8,7 @@ global glm::vec3 console_input_scale;
 global char*     input_buffer;
 global uint32_t  cursor_pos = 0;
 global uint32_t  scroll = 0;
+global uint32_t  extra_lines = 0;
 global Font      console_font; 
 global glm::vec4 background_color;
 global glm::vec4 input_background_color;
@@ -29,7 +30,7 @@ struct ConsoleData
     bool         has_wrapped = false;
 };
 
-static ConsoleData console_data;
+global ConsoleData console_data;
 
 typedef enum
 {
@@ -71,9 +72,9 @@ internal bool console_is_open()
 
 internal void console_scroll(int amount)
 {
-    if (console_data.has_wrapped) if ((amount < 0 && scroll == 0) || (amount > 0 && scroll + amount > console_data.num_lines - 1)) return;
+    if (console_data.has_wrapped) if ((amount < 0 && scroll + extra_lines == 0) || (amount > 0 && scroll + extra_lines + amount > console_data.num_lines - 1)) return;
 
-    if ((amount < 0 && scroll == 0) || (amount > 0 && scroll + amount > console_data.line_index - 1)) return;
+    if ((amount < 0 && scroll + extra_lines == 0) || (amount > 0 && scroll + extra_lines + amount > console_data.line_index - 1)) return;
 
     scroll += amount;
 }
@@ -186,7 +187,7 @@ internal void console_enter()
         console_print(buf2);
     }
     cursor_pos = 0;
-    scroll = 0;
+    scroll = 0 - extra_lines; // TODO: <
 }
 
 internal void console_print(const char* format, ...)
@@ -296,25 +297,52 @@ internal void render_console(Renderer2D_Data* renderer, float dt, float screen_w
     int screen_w = (int)(console_scale.x + x * (screen_width / (x * 2.0f)));
     renderer_api_scissor(screen_x, screen_y, (int)screen_width, (int)screen_height);
 
+    extra_lines = 0;
+    float font_scale = 0.5f;
     // TODO: think of cleaner way to do this
     if (!console_data.has_wrapped)
     {
         for (uint32_t i = 0; i < console_data.line_index; i++)
         {
-            float line_y = console_translation.y - console_scale.y / 2 + (console_data.line_index - i - scroll) * 0.5f - 0.15f;
+            char* l = console_data.console_lines[i].line;
+            uint32_t len = (uint32_t)strlen(l);
+            uint32_t len1 = 0;
+            uint32_t len2 = 0;
+            if (font_calculate_string_length(console_font, l) * font_scale > x * 2.0f) 
+            {
+                len1 = len / 2;
+                len2 = len - len1;
+            }
+            else
+            {
+                len1 = len;
+            }
+
+            float line_y = console_translation.y - console_scale.y / 2 + (console_data.line_index - i - extra_lines - scroll) * 0.5f - 0.15f;
+
             glm::vec3 line_translation = { -x + 0.4f, line_y, 0.0f };
-            glm::mat4 line_transform = glm::translate(glm::mat4(1.0f), line_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+
+            glm::mat4 line_transform = glm::translate(glm::mat4(1.0f), line_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(font_scale));
 
             glm::vec4 line_color = console_data.console_lines[i].is_input ? input_text_color : other_text_color;
 
-            renderer2D_draw_string(renderer, console_font, console_data.console_lines[i].line, line_transform, line_color);
+            renderer2D_draw_string_sized(renderer, console_font, l, len1, line_transform, line_color);
+
+            if (len2)
+            {
+                extra_lines++;
+                line_y = console_translation.y - console_scale.y / 2 + (console_data.line_index - i - extra_lines - scroll) * 0.5f - 0.15f;
+                line_translation = { -x + 0.4f, line_y, 0.0f };
+                line_transform = glm::translate(glm::mat4(1.0f), line_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(font_scale));
+                renderer2D_draw_string_sized(renderer, console_font, l + len1, len2, line_transform, line_color);
+            }
         }
-    }
+    } // TODO: make wrapped version the same 
     else
     {
         for (uint32_t i = 0; i < console_data.num_lines; i++)
         {
-            float line_y = console_translation.y - console_scale.y / 2 + (console_data.num_lines - i - scroll) * 0.5f;
+            float line_y = console_translation.y - console_scale.y / 2 + (console_data.num_lines - i - extra_lines - scroll) * 0.5f;
             glm::vec3 line_translation = { -x + 0.5f, line_y, 0.0f };
             glm::mat4 line_transform = glm::translate(glm::mat4(1.0f), line_translation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
 

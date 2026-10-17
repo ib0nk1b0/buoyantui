@@ -2,9 +2,9 @@
 #include "renderer/opengl_renderer.h"
 
 // TODO: globals
-static bool show_console = false;
-static bool show_menu = false;
-static bool show_grid = false;
+global bool show_console = false;
+global bool show_menu = false;
+global bool show_grid = false;
 
 internal void test_ui_stuff(Bui* bui, float width, float height)
 {
@@ -23,15 +23,15 @@ internal void test_ui_stuff(Bui* bui, float width, float height)
     bui_button(bui, "Some Button 3");
 
     // TODO: figure out how to handle the auto layout when different items are supposed to move the cursor down by different amounts
-    static bool checked = false;
+    local_persist bool checked = false;
     bui_checkbox(bui, "Checkbox", &checked);
 
-    static bool checked2 = false;
+    local_persist bool checked2 = false;
     bui_checkbox(bui, "Checkbox2", &checked2);
     // bui_same_line(bui);
     bui_button(bui, "btn"); // also doesn't work properly
 
-    static bool checked3 = false;
+    local_persist bool checked3 = false;
     bui_checkbox(bui, "##Checkbox3", &checked3);
     bui_same_line(bui);
     bui_text(bui, "Checkbox3"); // Creates an interesting bug as text takes up less vertical space so next thing to be rendered gets rendered on top of checkbox
@@ -60,7 +60,7 @@ internal void test_ui_stuff(Bui* bui, float width, float height)
 
     bui_end_window(bui);
 
-    static bool show_calculator = true;
+    local_persist bool show_calculator = true;
     if (bui_button(bui, "Toggle Calculator"))
     {
         show_calculator = !show_calculator;
@@ -173,7 +173,7 @@ internal void render_tile_map(Buoyantui* buoyantui)
 
 internal void buoyantui_update(Buoyantui* buoyantui, float width, float height, float dt)
 {
-    static glm::vec3 position = {0.0f, 0.0f, 0.3f };
+    local_persist glm::vec3 position = {0.0f, 0.0f, 0.3f };
 
     glm::mat4 camera, view, projection, viewProjection;
 

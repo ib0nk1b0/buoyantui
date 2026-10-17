@@ -78,6 +78,7 @@
 
 #define internal static
 #define global static
+#define local_persist static
 
 #define Kilobytes(x) 1024 * (x)
 #define Megabytes(x) 1024 * Kilobytes(x)

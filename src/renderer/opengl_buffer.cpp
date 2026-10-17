@@ -1,18 +1,18 @@
 #include "opengl_buffer.h"
 
-static Vertex_Array vertex_array_create()
+internal Vertex_Array vertex_array_create()
 {
     Vertex_Array vertexArray = {0};
     glCheckError(glGenVertexArrays(1, &vertexArray.renderer_id));
     return vertexArray;
 }
 
-static void vertex_array_bind(Vertex_Array vertexArray)
+internal void vertex_array_bind(Vertex_Array vertexArray)
 {
     glCheckError(glBindVertexArray(vertexArray.renderer_id));
 }
 
-static void vertex_array_add_vertex_buffer(Vertex_Array* vertexArray, Vertex_Buffer vertexBuffer)
+internal void vertex_array_add_vertex_buffer(Vertex_Array* vertexArray, Vertex_Buffer vertexBuffer)
 {
     assert(vertexBuffer.layout.element_count && "Must proivde a layout");
 
@@ -56,14 +56,14 @@ static void vertex_array_add_vertex_buffer(Vertex_Array* vertexArray, Vertex_Buf
 }
 
 // TODO: finish
-static void vertex_array_set_index_buffer(Vertex_Array* vertexArray, Index_Buffer indexBuffer)
+internal void vertex_array_set_index_buffer(Vertex_Array* vertexArray, Index_Buffer indexBuffer)
 {
     vertex_array_bind(*vertexArray);
     index_buffer_bind(indexBuffer);
     vertexArray->index_buffer = indexBuffer;
 }
 
-static Vertex_Buffer vertex_buffer_create(float* vertices, size_t size)
+internal Vertex_Buffer vertex_buffer_create(float* vertices, size_t size)
 {
     Vertex_Buffer vertexBuffer = {0};
     glCheckError(glCreateBuffers(1, &vertexBuffer.renderer_id));
@@ -72,7 +72,7 @@ static Vertex_Buffer vertex_buffer_create(float* vertices, size_t size)
     return vertexBuffer;
 }
 
-static Vertex_Buffer vertex_buffer_create_empty(size_t size)
+internal Vertex_Buffer vertex_buffer_create_empty(size_t size)
 {
     Vertex_Buffer vertexBuffer = {0};
     glCreateBuffers(1, &vertexBuffer.renderer_id);
@@ -81,12 +81,12 @@ static Vertex_Buffer vertex_buffer_create_empty(size_t size)
     return vertexBuffer;
 }
 
-static void vertex_buffer_bind(Vertex_Buffer vertexBuffer)
+internal void vertex_buffer_bind(Vertex_Buffer vertexBuffer)
 {
     glCheckError(glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer.renderer_id));
 }
 
-static Vertex_Buffer_Layout vertex_buffer_layout_create(Vertex_Buffer_Layout_Element* elements, uint32_t element_count, uint32_t stride)
+internal Vertex_Buffer_Layout vertex_buffer_layout_create(Vertex_Buffer_Layout_Element* elements, uint32_t element_count, uint32_t stride)
 {
     Vertex_Buffer_Layout layout = {
         .elements =      elements,
@@ -99,19 +99,19 @@ static Vertex_Buffer_Layout vertex_buffer_layout_create(Vertex_Buffer_Layout_Ele
 
 // TODO: this is kind of pointless if all it does is assign the layout to the vertex buffer to be used later.
 // doesn't need to be a function call
-static void vertex_buffer_set_layout(Vertex_Buffer* vertexBuffer, Vertex_Buffer_Layout layout)
+internal void vertex_buffer_set_layout(Vertex_Buffer* vertexBuffer, Vertex_Buffer_Layout layout)
 {
     vertexBuffer->layout = layout;
 }
 
-static void vertex_buffer_set_data(Vertex_Buffer vertexBuffer, const void* data, size_t size)
+internal void vertex_buffer_set_data(Vertex_Buffer vertexBuffer, const void* data, size_t size)
 {
     glCheckError(glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer.renderer_id));
     glCheckError(glBufferSubData(GL_ARRAY_BUFFER, 0, size, data));
 }
 
 
-static Index_Buffer index_buffer_create(uint32_t* indices, uint32_t count)
+internal Index_Buffer index_buffer_create(uint32_t* indices, uint32_t count)
 {
     Index_Buffer indexBuffer = {0};
 
@@ -125,7 +125,7 @@ static Index_Buffer index_buffer_create(uint32_t* indices, uint32_t count)
     return indexBuffer;
 }
 
-static void index_buffer_bind(Index_Buffer indexBuffer)
+internal void index_buffer_bind(Index_Buffer indexBuffer)
 {
     glCheckError(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer.renderer_id));
 }

@@ -6,6 +6,17 @@
 #define THREAD_COUNT 8
 // NOTE:This is bad ^
 
+struct CharsetRange
+{
+    uint32_t Begin, End;
+};
+
+// From imgui_draw.cpp
+global const CharsetRange charsetRanges[] =
+{
+    { 0x0020, 0x00FF }
+};
+
 internal Font font_load_from_file(Arena* arena, const char* path)
 {
     MSDFData* m_Data = ArenaPushStruct(arena, MSDFData);
@@ -17,17 +28,6 @@ internal Font font_load_from_file(Arena* arena, const char* path)
     {
         console_print("Failed to load font");
     }
-
-    struct CharsetRange
-    {
-        uint32_t Begin, End;
-    };
-
-    // From imgui_draw.cpp
-    static const CharsetRange charsetRanges[] =
-    {
-        { 0x0020, 0x00FF }
-    };
 
     msdf_atlas::Charset charset;
     for (CharsetRange range : charsetRanges)
@@ -95,4 +95,41 @@ internal Font font_load_from_file(Arena* arena, const char* path)
     result.font_data = m_Data;
     result.font_atlas = atlas;
     return result;
+}
+
+internal float font_calculate_string_length(const Font& font, const char* string)
+{
+    return font_calculate_string_length_sized(font, string, (uint32_t)strlen(string));
+}
+
+internal float font_calculate_string_length_sized(const Font& font, const char* string, uint32_t size)
+{
+    const auto& fontGeometry = font.font_data->FontGeometry;
+    const auto& metrics = fontGeometry.getMetrics();
+    double x = 0.0;
+    double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
+    const float spaceGlyphAdvance = (float)fontGeometry.getGlyph(' ')->getAdvance();
+    for (uint32_t i = 0; i < size; i++)
+    {
+        char character = string[i];
+        
+        if (character == '\r')
+            continue;
+
+        if (character == '\n')
+            continue;
+
+
+        if (character == '\t')
+        {
+            x += 4.0f * (fsScale * spaceGlyphAdvance + font.kerning);
+            continue;
+        }
+
+        float advance = (float)fontGeometry.getGlyph(character)->getAdvance();
+
+        x += fsScale * advance + font.kerning;
+    }
+
+    return (float)x;
 }

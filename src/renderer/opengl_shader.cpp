@@ -2,7 +2,7 @@
 
 // TODO: this expects vertex and fragment shader in one file. in the future
 // this should probably handle individual shader components to be customizable
-static Shader shader_compile_from_file(const char* filepath)
+internal Shader shader_compile_from_file(const char* filepath)
 {
     Arena* tempAlloc = arena_create(Megabytes(16));
     StringView sv = sv_read_entire_file(tempAlloc, filepath);
@@ -84,7 +84,7 @@ static Shader shader_compile_from_file(const char* filepath)
     return shader;
 }
 
-static void shader_set_uniform_cache(Arena* arena, Shader* shader, char** uniform_names, uint32_t uniform_count)
+internal void shader_set_uniform_cache(Arena* arena, Shader* shader, char** uniform_names, uint32_t uniform_count)
 {
     // TODO: should take in a Shader_Uniform
     // TODO: errors...
@@ -103,7 +103,7 @@ static void shader_set_uniform_cache(Arena* arena, Shader* shader, char** unifor
     }
 }
 
-static uint32_t shader_get_location_from_cache(const Shader* shader, const char* name)
+internal uint32_t shader_get_location_from_cache(const Shader* shader, const char* name)
 {
     uint32_t location = -1;
     for (uint32_t i = 0; i < shader->uniform_count; i++)
@@ -123,7 +123,7 @@ internal void shader_upload_uniform_int_array(const Shader* shader, const char* 
     glCheckError(glUniform1iv(location, count, data));
 }
 
-static void shader_upload_uniform_float(const Shader* shader, const char* name, float value)
+internal void shader_upload_uniform_float(const Shader* shader, const char* name, float value)
 {
     // NOTE: assuming the cache has already been set up
     // NOTE: check if exists in shader cache...
@@ -132,7 +132,7 @@ static void shader_upload_uniform_float(const Shader* shader, const char* name, 
 
 }
 
-static void shader_upload_uniform_mat4(const Shader* shader, const char* name, const glm::mat4& value)
+internal void shader_upload_uniform_mat4(const Shader* shader, const char* name, const glm::mat4& value)
 {
     // NOTE: assuming the cache has already been set up
     // NOTE: check if exists in shader cache...
@@ -140,7 +140,7 @@ static void shader_upload_uniform_mat4(const Shader* shader, const char* name, c
     glCheckError(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value)));
 }
 
-static void shader_bind(const Shader* shader)
+internal void shader_bind(const Shader* shader)
 {
     glUseProgram(shader->renderer_id);
 }

@@ -338,16 +338,11 @@ internal bool platform_input_is_mouse_down(Bui_Mouse button)
 
 internal void glfw_error_callback(int error, const char* desc)
 {
-    fprintf(stderr, "[ERROR]: (%d) %s\n", error, desc);
+    console_print("[ERROR]: (%d) %s\n", error, desc);
 }
 
 internal void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    // if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    // {
-    //     glfwSetWindowShouldClose(window, GLFW_TRUE);
-    // }
-
     BuiKeyEvent event = {};
     event.key = glfw_key_to_bui(key);
 
@@ -401,14 +396,11 @@ int main(void)
     //
     // OpenGL 
     //
+
     // TODO: this should be setup by renderer...
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    //
-    // msdf-gen-atlas
-    //
 
     Font inconsolata = font_load_from_file(arena, "resources\\fonts\\ttf\\Inconsolata-Bold.ttf");
     console_set_font(inconsolata);

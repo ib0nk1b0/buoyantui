@@ -1,6 +1,6 @@
 #include "opengl_texture.h"
 
-static Texture2D texture_create(uint32_t width, uint32_t height, GLenum internalFormat, GLenum dataFormat, void* data, bool is_pixel_art)
+internal Texture2D texture_create(uint32_t width, uint32_t height, GLenum internalFormat, GLenum dataFormat, void* data, bool is_pixel_art)
 {
     Texture2D texture = {
         .width = width,
@@ -30,7 +30,7 @@ static Texture2D texture_create(uint32_t width, uint32_t height, GLenum internal
 }
 
 // TODO: allow for choosing filtering type
-static Texture2D texture_create_from_file(const char* filepath, bool is_pixel_art)
+internal Texture2D texture_create_from_file(const char* filepath, bool is_pixel_art)
 {
 
     // NOTE: load data for texture
@@ -58,7 +58,7 @@ static Texture2D texture_create_from_file(const char* filepath, bool is_pixel_ar
     return texture;
 }
 
-static void texture_bind(Texture2D texture, uint32_t slot)
+internal void texture_bind(Texture2D texture, uint32_t slot)
 {
     glCheckError(glBindTextureUnit(slot, texture.renderer_id));
 }
